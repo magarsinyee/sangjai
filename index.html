@@ -15,6 +15,10 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 #stage.cam{transition:transform .45s cubic-bezier(.3,.8,.4,1)}
 #bg{will-change:transform}
 #bg{position:absolute;left:0;top:0;display:block}
+#vp,#stage,#bg,.hs{touch-action:none}
+button,.btn,.hb,.dk,.chip,.opt,.shopi,.row,#hud,#dock,#modal{touch-action:manipulation}
+#zoomFix{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:200;border:0;border-radius:22px;background:#ff4f7b;color:#fff;font:900 18px sans-serif;padding:16px 22px;box-shadow:0 6px 0 #d6335d}
+#zoomFix[hidden]{display:none}
 .ent{position:absolute;left:0;top:0;touch-action:none;cursor:grab;will-change:transform;backface-visibility:hidden}
 .ent.lift{filter:drop-shadow(0 22px 12px rgba(0,0,0,.28));z-index:6000!important;cursor:grabbing}
 .ent.fall{transition:transform .42s cubic-bezier(.4,0,.8,.6)}
@@ -1582,7 +1586,19 @@ setTimeout(()=>{$('splash').classList.add('out');setTimeout(()=>$('splash').remo
 setInterval(tick,1000);
 (function raf(){if(drag)autoPan();requestAnimationFrame(raf);})();
 document.addEventListener('visibilitychange',()=>{if(document.hidden){saveNow();stopMusic();}else if(S&&S.radio)playMusic('radio');});
-addEventListener('pagehide',saveNow);document.addEventListener('gesturestart',e=>e.preventDefault());
+addEventListener('pagehide',saveNow);
+/* ---- 防止雙擊／雙指放大 ---- */
+const VP_CONTENT='width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover';
+function lockViewport(){let m=document.querySelector('meta[name=viewport]');if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}m.setAttribute('content',VP_CONTENT);}
+function resetZoom(){const m=document.querySelector('meta[name=viewport]');if(m){m.setAttribute('content','width=device-width,initial-scale=1.0001,maximum-scale=1');setTimeout(lockViewport,60);}window.scrollTo(0,0);setTimeout(()=>{layout();checkZoom();},300);}
+lockViewport();
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+let lastTE=0;
+document.addEventListener('touchend',e=>{const t=Date.now();if(t-lastTE<380&&!e.target.closest('input,textarea'))e.preventDefault();lastTE=t;},{passive:false});
+document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
+function checkZoom(){const v=window.visualViewport;const z=v&&v.scale>1.02;let b=$('zoomFix');if(!b){b=document.createElement('button');b.id='zoomFix';b.textContent='🔍 撳呢度縮返原大小';b.hidden=true;b.onclick=e=>{e.stopPropagation();resetZoom();};document.body.appendChild(b);}b.hidden=!z;if(z&&!R.zTried){R.zTried=1;resetZoom();}if(!z)R.zTried=0;}
+if(window.visualViewport){visualViewport.addEventListener('resize',checkZoom);visualViewport.addEventListener('scroll',()=>{if(visualViewport.scale<=1.02)window.scrollTo(0,0);});}
 window.__g={focusX,moJudge,devComplete(){const b=B();const gs=stageGoals(b);gs.forEach((g,i)=>b.prog[g.k]=i?g.n:g.n-1);track(gs[0].k);},stageGoals,get S(){return S;},R,get EV(){return EV;},startExam,track,openMall,openProduct,openLicense,openGrow,switchBB,babyModal,tick,E,B};
 })();
 </script>
