@@ -8,21 +8,25 @@
 <style>
 :root{color-scheme:light;--wall:#ffe3c2;--wall2:#ffd2a1;--rug:#ff9fb8;--rug2:#ffc4d3;--curt:#7c6cf0;--ones:#ffd166;--shirt:#7c6cf0;--crib:#7fc8a9;--crib2:#a5ddc3;--ink:#3b2a4a;--pink:#ff4f7b;--card:#fffaf2;--soft:#efe6f5;--muted:#9a7fb0;--ok:#3fbfad}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden;font-family:"Arial Rounded MT Bold","PingFang HK","Microsoft JhengHei","Noto Sans HK","Heiti TC",sans-serif;color:var(--ink);background:#f0b47c;user-select:none;-webkit-user-select:none;touch-action:none;overscroll-behavior:none}
+html,body{margin:0;height:100%;overflow:hidden;font-family:"Arial Rounded MT Bold","PingFang HK","Microsoft JhengHei","Noto Sans HK","Heiti TC",sans-serif;color:var(--ink);background:#f0b47c;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;overscroll-behavior:none}
 button{font-family:inherit;color:inherit;cursor:pointer}
 #vp{position:fixed;inset:0;overflow:hidden;background:linear-gradient(#ffe9d6 0 50%,#f0b47c 50%)}
-#stage{position:absolute;left:0;top:0;width:1600px;height:800px;transform-origin:0 0}
+#stage{position:absolute;left:0;top:0;width:1600px;height:800px;transform-origin:0 0;will-change:transform}
+#stage.cam{transition:transform .45s cubic-bezier(.3,.8,.4,1)}
+#bg{will-change:transform}
 #bg{position:absolute;left:0;top:0;display:block}
-.ent{position:absolute;touch-action:none;cursor:grab}
+.ent{position:absolute;left:0;top:0;touch-action:none;cursor:grab;will-change:transform;backface-visibility:hidden}
 .ent.lift{filter:drop-shadow(0 22px 12px rgba(0,0,0,.28));z-index:6000!important;cursor:grabbing}
-.ent.fall{transition:left .35s ease-out,top .42s cubic-bezier(.55,0,.85,.55)}
-.ent.glide{transition:left .6s ease-in-out,top .6s ease-in-out}
-.ent.walk{transition:left 1.9s ease-in-out,top .3s}
+.ent.fall{transition:transform .42s cubic-bezier(.4,0,.8,.6)}
+.ent.glide{transition:transform .6s ease-in-out}
+.ent.walk{transition:transform 1.9s ease-in-out}
 .item{width:72px;height:72px;display:flex;align-items:flex-end;justify-content:center;font-size:54px;line-height:1}
-.item .em{filter:drop-shadow(0 4px 0 rgba(0,0,0,.14));display:block}
+.item .em{display:block}
+.item:before{content:"";position:absolute;left:22%;right:22%;bottom:-3px;height:9px;border-radius:50%;background:rgba(0,0,0,.13)}
+svg,img{-webkit-user-drag:none;-webkit-touch-callout:none}
 .item.float .em{animation:bob 2.4s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-8px) rotate(4deg)}}
-.item.hot{animation:wiggle .5s ease-in-out infinite}
+.item.hot .em,.item.hot svg{animation:wiggle .5s ease-in-out infinite}
 @keyframes wiggle{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
 .hs{position:absolute;cursor:pointer;border-radius:16px}
 .over{position:absolute;pointer-events:none}
@@ -36,7 +40,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 #binLid,#toyLid{transform-box:fill-box;transform-origin:0 100%;transition:transform .25s}
 .binOpen #binLid{transform:rotate(-38deg)}
 .boxOpen #toyLid{transform:rotate(-40deg)}
-#mobile{transform-origin:870px 0;transform-box:view-box}
+#mobile{transform-origin:50% 0;transform-box:fill-box}
 .spin #mobile{animation:mob 1.6s ease-in-out infinite}
 @keyframes mob{25%{transform:rotate(5deg)}75%{transform:rotate(-5deg)}}
 #mobArm{transform-box:fill-box;transform-origin:50% 0}
@@ -51,10 +55,11 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .night #clouds{opacity:.25}
 /* BB */
 #bb{width:150px;height:170px}
-#bb>svg.bbmain{display:block;width:100%;height:100%;overflow:visible;transform-origin:50% 100%;transition:transform .6s}
+#bb>svg.bbmain{display:block;width:100%;height:100%;overflow:visible;transform-origin:50% 100%;transition:scale .6s;animation:breathe 3s ease-in-out infinite}
+.lite #bb>svg.bbmain{animation:none}
 #pa svg{display:block;width:100%;height:100%;overflow:visible}
 .ones{fill:var(--ones)}.skin{fill:#ffd6b8}
-.bbbody{transform-origin:75px 164px;transform-box:view-box;animation:breathe 3s ease-in-out infinite}
+.bbbody{transform-origin:75px 164px;transform-box:view-box}
 @keyframes breathe{50%{transform:scale(1.02,.98)}}
 #bb.bounce .bbbody{animation:bounce .42s ease 3}
 @keyframes bounce{40%{transform:translateY(-18px) scale(1.04,.96)}}
@@ -95,7 +100,96 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 #strB.push svg,#strF.push svg{animation:pushBob .35s ease-in-out infinite alternate}
 @keyframes pushBob{to{transform:translateY(-4px)}}
 #bag{width:110px;height:110px}
-#bag.gulp{animation:wiggle .4s}
+#bag.gulp svg{animation:wiggle .4s}
+/* 底部工具列 / 狀態 / 引導 */
+#dock{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 10px);transform:translateX(-50%);display:flex;gap:6px;background:rgba(255,255,255,.92);padding:6px;border-radius:26px;box-shadow:0 6px 0 rgba(0,0,0,.12);z-index:10}
+.dk{position:relative;border:0;background:transparent;border-radius:20px;min-width:62px;padding:4px 8px 6px;font-weight:900;font-size:12px;display:flex;flex-direction:column;align-items:center;line-height:1.15}
+.dk span{font-size:24px;line-height:1.2}
+.dk b{font-size:12px}.dk small{font-size:10px;color:var(--muted)}
+.dk:active{background:var(--soft);transform:translateY(2px)}
+.dk .dot{position:absolute;top:2px;right:8px;width:12px;height:12px;border-radius:50%;background:#ff4f7b;border:2px solid #fff;display:none}
+.dk .dot.show{display:block;animation:hpulse 1.2s infinite}
+#meters{display:flex;gap:8px;padding:7px 12px;pointer-events:none}
+.mt{display:flex;align-items:center;gap:3px;font-size:14px}
+.mt i{display:block;width:34px;height:8px;border-radius:6px;background:var(--soft);overflow:hidden}
+.mt b{display:block;height:100%;border-radius:6px;transition:width .6s,background .6s}
+.pan{position:fixed;top:50%;transform:translateY(-50%);z-index:9;border:0;width:42px;height:64px;border-radius:18px;background:rgba(255,255,255,.75);font-size:20px;font-weight:900;color:var(--ink);box-shadow:0 4px 0 rgba(0,0,0,.1);display:none}
+.pan.show{display:block}
+#panL{left:6px}#panR{right:6px}
+.zh{position:absolute;border:5px dashed #ffd166;border-radius:28px;background:rgba(255,209,102,.16);pointer-events:none;z-index:3990;animation:zh 1s ease-in-out infinite alternate}
+.zh b{position:absolute;left:50%;top:-34px;transform:translateX(-50%);background:#ffd166;color:var(--ink);border-radius:999px;padding:3px 12px;font-size:20px;white-space:nowrap}
+.zh.bb{border-color:#7dd8b2;background:rgba(125,216,178,.18)}.zh.bb b{background:#7dd8b2}
+@keyframes zh{to{opacity:.55}}
+.coinfly{position:fixed;z-index:60;font-size:24px;pointer-events:none;transition:transform .7s cubic-bezier(.5,-0.4,.7,1),opacity .7s;will-change:transform}
+#splash{position:fixed;inset:0;z-index:100;background:linear-gradient(#ffe9d6,#ffd6e0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:opacity .5s}
+#splash .logo{font-size:72px;animation:hpulse 1s infinite}
+#splash b{font-size:30px}#splash small{color:var(--muted);font-weight:800}
+#splash .ld{width:180px;height:10px;border-radius:9px;background:#fff;overflow:hidden;margin-top:10px}
+#splash .ld i{display:block;height:100%;width:30%;background:var(--pink);border-radius:9px;animation:ld 1s ease-in-out infinite}
+@keyframes ld{0%{transform:translateX(-100%)}100%{transform:translateX(340%)}}
+#splash.out{opacity:0;pointer-events:none}
+@media (max-width:520px){.dk{min-width:52px;padding:4px 4px 6px}#meters .mt i{width:24px}}
+.sidedock #dock{left:auto;right:6px;top:50%;bottom:auto;transform:translateY(-50%);flex-direction:column;padding:4px;gap:0}
+.sidedock .dk{min-width:66px;padding:1px 4px}
+.sidedock .dk span{font-size:18px}
+.sidedock #tipbox{bottom:calc(env(safe-area-inset-bottom) + 8px);max-width:calc(100% - 110px)}
+.sidedock #panR{right:90px}
+.sidedock #rot{display:none!important}
+/* 效能模式 */
+.lite .bbbody,.lite .fan,.lite .need,.lite .item.float .em,.lite .stink path,.lite .tear,.lite .zh{animation:none!important}
+.lite .item .em,.lite .ent.lift,.lite #bb{filter:none!important}
+.lite .say,.lite .hb,.lite .dk{box-shadow:none!important}
+.lite #night{transition:none}
+/* BB 成長外觀 */
+#bb .swaddle,#bb .cap,#bb .tooth{display:none}
+#bb.st0 .swaddle,#bb.st1 .swaddle{display:block}
+#bb.st0 .legs,#bb.st1 .legs,#bb.st0 .armL,#bb.st1 .armL,#bb.st0 .armR,#bb.st1 .armR,#bb.st0 .belly,#bb.st1 .belly,#bb.st0 .trait,#bb.st1 .trait{display:none}
+#bb.st1 .cap{display:block}
+#bb.st6 .tooth,#bb.st7 .tooth{display:block}
+#bb.evolving{z-index:3960!important}
+#bb.evolving svg.bbmain{animation:none;transition:scale .12s}
+#bb.flash svg.bbmain{filter:brightness(0) invert(1) drop-shadow(0 0 18px #fff)}
+#evoDim{position:absolute;left:0;top:0;width:1600px;height:800px;z-index:3950;pointer-events:none;opacity:0;transition:opacity .4s}
+#evoDim.on{opacity:1}
+.evoTxt{position:absolute;transform:translate(-50%,-50%);font-size:44px;font-weight:900;color:#fff;text-shadow:0 4px 0 #ff4f7b,0 0 20px #ff4f7b;z-index:3970;pointer-events:none;white-space:nowrap;animation:evoPop .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes evoPop{from{transform:translate(-50%,-50%) scale(.3);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+/* 成長條 + combo */
+#growBar{min-width:150px}
+#growBar .gt{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+#growBar small{font-size:11px;color:var(--muted);line-height:1}
+#growBar .gb{width:120px;height:12px;border-radius:8px;background:var(--soft);overflow:hidden;position:relative}
+#growBar .gb i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#7dd8b2,#ffd166,#ff8fb1);border-radius:8px;transition:width .5s cubic-bezier(.3,1.4,.5,1)}
+#growBar.full .gb i{animation:gfull .5s ease-in-out infinite alternate}
+@keyframes gfull{to{filter:brightness(1.3)}}
+.combo{position:absolute;transform:translate(-50%,-50%);font-weight:900;color:#fff;z-index:4700;pointer-events:none;white-space:nowrap;-webkit-text-stroke:0;text-shadow:0 3px 0 #7c6cf0,0 -2px 0 #7c6cf0,2px 0 0 #7c6cf0,-2px 0 0 #7c6cf0;animation:comboPop 1.3s ease-out forwards}
+.combo.perfect{text-shadow:0 3px 0 #ff4f7b,0 -2px 0 #ff4f7b,2px 0 0 #ff4f7b,-2px 0 0 #ff4f7b}
+@keyframes comboPop{0%{transform:translate(-50%,-50%) scale(.3) rotate(-8deg);opacity:0}20%{transform:translate(-50%,-60%) scale(1.25) rotate(3deg);opacity:1}40%{transform:translate(-50%,-60%) scale(1) rotate(0)}100%{transform:translate(-50%,-160%) scale(1);opacity:0}}
+.lite .combo{animation-duration:.9s}
+#mo.moWalk{transition:transform .95s ease-in-out}
+#mo.moWalk svg{animation:moStep .24s ease-in-out infinite alternate}
+@keyframes moStep{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-8px) rotate(2deg)}}
+/* Mo嫂 */
+#mo{width:170px;height:380px;cursor:pointer}
+#mo svg{display:block;overflow:visible}
+#mo .moThumb,#mo .moFrown{display:none}
+#mo.good .moThumb{display:block}#mo.good .moArmR{display:none}
+#mo.bad .moFrown{display:block}#mo.bad .moSmile{display:none}
+.moHead{transform-box:view-box;transform-origin:85px 150px}
+#mo.bad .moHead{animation:shake .2s ease-in-out 4}
+#mo.good .moHead{animation:nod .3s ease-in-out 2}
+@keyframes nod{50%{transform:translateY(6px)}}
+.fan{transform-box:fill-box;transform-origin:50% 100%;animation:fan 1.4s ease-in-out infinite;animation-play-state:paused}
+#mo.good .fan,#mo.bad .fan,#mo.tip .fan{animation-play-state:running}
+@keyframes fan{50%{transform:rotate(-16deg)}}
+.moBadge{position:absolute;transform:translate(-50%,-100%);background:#3b2a4a;color:#ffd166;border-radius:999px;padding:3px 12px;font-size:16px;font-weight:900;z-index:4400;pointer-events:none;white-space:nowrap}
+.say.good{box-shadow:0 0 0 5px #3fbfad,0 8px 0 rgba(0,0,0,.12)}
+.say.bad{box-shadow:0 0 0 5px #ff4f7b,0 8px 0 rgba(0,0,0,.12)}
+.say.tip{box-shadow:0 0 0 5px #ffd166,0 8px 0 rgba(0,0,0,.12)}
+.say.good:before,.say.bad:before,.say.tip:before{display:block;font-size:13px;font-weight:900;margin-bottom:2px}
+.say.good:before{content:"👵 Mo嫂：✅ 做得啱";color:#2a9d8f}
+.say.bad:before{content:"👵 Mo嫂：❌ 唔係咁喎";color:#e8335f}
+.say.tip:before{content:"👵 Mo嫂提提你";color:#c78a00}
+.say.good,.say.bad,.say.tip{white-space:normal;width:max-content;max-width:420px;font-size:19px;line-height:1.35}
 /* bubbles & fx */
 .say{position:absolute;background:#fff;border-radius:22px;padding:10px 16px;font-size:22px;font-weight:900;white-space:nowrap;box-shadow:0 6px 0 rgba(0,0,0,.12);transform:translate(-50%,-100%);z-index:4500;pointer-events:none;animation:pop .25s cubic-bezier(.3,1.5,.5,1)}
 .say:after{content:"";position:absolute;left:50%;bottom:-12px;margin-left:-10px;border:10px solid transparent;border-top-color:#fff;border-bottom:0}
@@ -125,14 +219,14 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .chip small{display:block;font-size:10px;color:var(--muted);line-height:1}
 .chip.on{background:#fff;outline:3px solid var(--pink)}
 .chip.add{padding:5px 12px;font-size:18px}
-#tipbox{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom) + 12px);max-width:min(560px,calc(100% - 24px));background:#fff;border-radius:20px;padding:10px 16px;font-weight:900;font-size:15px;box-shadow:0 5px 0 rgba(0,0,0,.12);z-index:9;pointer-events:none;transition:opacity .3s}
+#tipbox{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom) + 92px);max-width:min(560px,calc(100% - 24px));background:#fff;border-radius:20px;padding:10px 16px;font-weight:900;font-size:15px;box-shadow:0 5px 0 rgba(0,0,0,.12);z-index:9;pointer-events:none;transition:opacity .3s}
 #tipbox:empty{opacity:0}
 #evbar{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 66px);transform:translateX(-50%);background:#2b2163;color:#fff;border-radius:20px;padding:10px 16px;font-weight:900;font-size:14px;z-index:11;text-align:left;box-shadow:0 6px 0 rgba(0,0,0,.25);display:none;max-width:94%;min-width:280px}
 #evbar.show{display:block}
 #evbar b{color:#ffd166;font-size:20px}
 #evbar .st{display:flex;gap:10px;margin:6px 0;flex-wrap:wrap;font-size:13px}
 #evbar .st span{opacity:.55}#evbar .st span.ok{opacity:1;color:#7dd8b2}
-#rot{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 70px);text-align:center;font-size:13px;font-weight:800;color:#8a5a3a;z-index:8;pointer-events:none;display:none}
+#rot{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 150px);text-align:center;font-size:13px;font-weight:800;color:#8a5a3a;z-index:8;pointer-events:none;display:none}
 /* modal */
 #modal{position:fixed;inset:0;background:rgba(43,33,99,.45);display:flex;align-items:center;justify-content:center;padding:14px;z-index:30}
 #modal[hidden]{display:none}
@@ -231,7 +325,6 @@ input.nm:focus{border-color:var(--pink)}
    <rect x="254" y="68" width="232" height="16" rx="8" fill="#c98d5e"/>
    <rect x="254" y="318" width="232" height="18" rx="8" fill="#fff"/>
    <g id="piggy"><ellipse cx="316" cy="296" rx="32" ry="22" fill="#ff9fb8"/><ellipse cx="346" cy="294" rx="10" ry="8" fill="#ff7fa0"/><circle cx="343" cy="293" r="2" fill="#a0405a"/><circle cx="349" cy="293" r="2" fill="#a0405a"/><circle cx="328" cy="286" r="3" fill="#3b2a4a"/><path d="M300 276l6 -10l8 8z" fill="#ff7fa0"/><rect x="306" y="276" width="16" height="4" rx="2" fill="#a0405a"/><rect x="298" y="312" width="8" height="8" rx="3" fill="#ff7fa0"/><rect x="326" y="312" width="8" height="8" rx="3" fill="#ff7fa0"/></g>
-   <g id="radio"><path d="M420 270l20 -22" stroke="#3b2a4a" stroke-width="4" stroke-linecap="round"/><rect x="398" y="270" width="68" height="48" rx="12" fill="#ff6b8b"/><circle cx="418" cy="294" r="13" fill="#3b2a4a"/><circle cx="418" cy="294" r="6" fill="#ff6b8b"/><rect x="438" y="282" width="20" height="8" rx="4" fill="#fff"/><rect x="438" y="298" width="20" height="8" rx="4" fill="#ffd166"/></g>
    <rect x="20" y="440" width="220" height="160" rx="18" fill="#ff8c69"/>
    <rect x="36" y="468" width="188" height="56" rx="14" fill="#ffad91"/><rect x="36" y="534" width="188" height="54" rx="14" fill="#ffad91"/>
    <circle cx="130" cy="496" r="7" fill="#fff"/><circle cx="130" cy="561" r="7" fill="#fff"/>
@@ -245,8 +338,6 @@ input.nm:focus{border-color:var(--pink)}
    <rect x="492" y="436" width="216" height="20" rx="10" fill="#fff"/>
    <g id="machine"><rect x="512" y="356" width="82" height="82" rx="16" fill="#eef4f8"/><rect x="524" y="368" width="58" height="28" rx="9" fill="#9ad9f5"/><text id="machTxt" x="553" y="388" text-anchor="middle" font-size="14" font-weight="900" fill="#2b5f7d">沖奶</text><circle id="machLight" cx="530" cy="414" r="6" fill="#ff8c69"/><rect x="541" y="420" width="24" height="12" rx="3" fill="#c7d3dc"/></g>
    <g id="bowl"><circle cx="648" cy="410" r="13" fill="#ff5d5d"/><path d="M642 398q4 -8 10 -6" stroke="#5a8f3a" stroke-width="3" fill="none"/><path d="M660 414q18 -26 34 -10q-16 -2 -34 10z" fill="#ffd34d"/><path d="M628 418q42 42 84 0z" fill="#7c6cf0"/></g>
-   <g id="clock"><circle cx="1210" cy="140" r="46" fill="#fff" stroke="#ff8c69" stroke-width="9"/><circle cx="1210" cy="140" r="4" fill="#3b2a4a"/><line id="hH" x1="1210" y1="140" x2="1210" y2="114" stroke="#3b2a4a" stroke-width="6" stroke-linecap="round"/><line id="hM" x1="1210" y1="140" x2="1232" y2="140" stroke="#3b2a4a" stroke-width="4" stroke-linecap="round"/></g>
-   <g id="mobile"><line x1="870" y1="0" x2="870" y2="240" stroke="#c98d5e" stroke-width="4"/><g id="mobArm"><rect x="810" y="238" width="120" height="8" rx="4" fill="#c98d5e"/><line x1="820" y1="246" x2="820" y2="276" stroke="#c98d5e" stroke-width="3"/><line x1="870" y1="246" x2="870" y2="290" stroke="#c98d5e" stroke-width="3"/><line x1="920" y1="246" x2="920" y2="276" stroke="#c98d5e" stroke-width="3"/><path d="M820 272l6 12l13 2l-9 9l2 13l-12 -6l-12 6l2 -13l-9 -9l13 -2z" fill="#ffd166"/><path d="M880 296a18 18 0 1 1 -14 -26a14 14 0 1 0 14 26z" fill="#9ad9f5"/><ellipse cx="920" cy="288" rx="18" ry="12" fill="#ff9fb8"/></g></g>
    <rect x="740" y="380" width="262" height="22" rx="11" fill="var(--crib)"/>
    <g stroke="var(--crib2)" stroke-width="9" stroke-linecap="round"><path d="M772 404v136M798 404v136M824 404v136M850 404v136M876 404v136M902 404v136M928 404v136M954 404v136M980 404v136"/></g>
    <rect x="740" y="380" width="22" height="226" rx="11" fill="var(--crib)"/><rect x="980" y="380" width="22" height="226" rx="11" fill="var(--crib)"/>
@@ -264,6 +355,9 @@ input.nm:focus{border-color:var(--pink)}
    <g id="decLights" style="display:none"><path d="M0 30q200 40 400 0t400 0t400 0t400 0" stroke="#3b2a4a" stroke-width="3" fill="none"/><g fill="#ffd166"><circle cx="100" cy="44" r="8"/><circle cx="300" cy="44" r="8"/><circle cx="500" cy="44" r="8" fill="#ff9fb8"/><circle cx="700" cy="44" r="8" fill="#9ad9f5"/><circle cx="900" cy="44" r="8"/><circle cx="1100" cy="44" r="8" fill="#ff9fb8"/><circle cx="1300" cy="44" r="8" fill="#9ad9f5"/><circle cx="1500" cy="44" r="8"/></g></g>
    <g id="decPlant" style="display:none"><rect x="168" y="214" width="44" height="38" rx="8" fill="#ff8c69"/><path d="M190 214q-30 -40 -10 -60q4 30 10 60q4 -40 26 -50q-6 30 -26 50" fill="#5bbf6a"/></g>
   </svg>
+  <svg class="over" style="left:800px;top:0;z-index:5" width="140" height="320" viewBox="800 0 140 320"><g id="mobile"><line x1="870" y1="0" x2="870" y2="240" stroke="#c98d5e" stroke-width="4"/><g id="mobArm"><rect x="810" y="238" width="120" height="8" rx="4" fill="#c98d5e"/><line x1="820" y1="246" x2="820" y2="276" stroke="#c98d5e" stroke-width="3"/><line x1="870" y1="246" x2="870" y2="290" stroke="#c98d5e" stroke-width="3"/><line x1="920" y1="246" x2="920" y2="276" stroke="#c98d5e" stroke-width="3"/><path d="M820 272l6 12l13 2l-9 9l2 13l-12 -6l-12 6l2 -13l-9 -9l13 -2z" fill="#ffd166"/><path d="M880 296a18 18 0 1 1 -14 -26a14 14 0 1 0 14 26z" fill="#9ad9f5"/><ellipse cx="920" cy="288" rx="18" ry="12" fill="#ff9fb8"/></g></g></svg>
+  <svg class="over" style="left:394px;top:244px;z-index:5" width="76" height="78" viewBox="394 244 76 78"><g id="radio"><path d="M420 270l20 -22" stroke="#3b2a4a" stroke-width="4" stroke-linecap="round"/><rect x="398" y="270" width="68" height="48" rx="12" fill="#ff6b8b"/><circle cx="418" cy="294" r="13" fill="#3b2a4a"/><circle cx="418" cy="294" r="6" fill="#ff6b8b"/><rect x="438" y="282" width="20" height="8" rx="4" fill="#fff"/><rect x="438" y="298" width="20" height="8" rx="4" fill="#ffd166"/></g></svg>
+  <svg class="over" style="left:1155px;top:85px;z-index:5" width="110" height="110" viewBox="1155 85 110 110"><g id="clock"><circle cx="1210" cy="140" r="46" fill="#fff" stroke="#ff8c69" stroke-width="9"/><circle cx="1210" cy="140" r="4" fill="#3b2a4a"/><line id="hH" x1="1210" y1="140" x2="1210" y2="114" stroke="#3b2a4a" stroke-width="6" stroke-linecap="round"/><line id="hM" x1="1210" y1="140" x2="1232" y2="140" stroke="#3b2a4a" stroke-width="4" stroke-linecap="round"/></g></svg>
   <svg class="over" id="cribFront" style="left:736px;top:440px;z-index:1600" width="270" height="170" viewBox="736 440 270 170"><rect x="740" y="456" width="262" height="18" rx="9" fill="var(--crib)"/><g stroke="var(--crib)" stroke-width="9" stroke-linecap="round"><path d="M772 474v110M798 474v110M824 474v110M850 474v110M876 474v110M902 474v110M928 474v110M954 474v110M980 474v110"/></g><rect x="740" y="576" width="262" height="18" rx="9" fill="var(--crib)"/></svg>
   <svg class="over" id="tubFront" style="left:1100px;top:500px;z-index:1600" width="200" height="110" viewBox="1100 500 200 110"><path d="M1106 508q0 76 94 76q94 0 94 -76q-94 26 -188 0z" fill="#fff"/><path d="M1106 508q94 26 188 0" stroke="#e6f4ff" stroke-width="6" fill="none"/><circle cx="1150" cy="548" r="8" fill="#9ad9f5"/><circle cx="1250" cy="548" r="8" fill="#ff9fb8"/></svg>
   <svg class="over" id="chairFront" style="left:1316px;top:440px;z-index:1495" width="136" height="40" viewBox="1316 440 136 40"><rect x="1318" y="444" width="132" height="26" rx="13" fill="#ffd166"/></svg>
@@ -274,13 +368,19 @@ input.nm:focus{border-color:var(--pink)}
  <button class="hb" id="hCoins">🪙 0</button>
  <button class="hb" id="hHearts">❤️ 0</button>
  <div id="chips"></div>
+ <button class="hb" id="growBar"></button>
  <div class="sp"></div>
- <button class="hb" id="bLic">🚗<span class="col"><span id="licT">L牌</span><small id="licP">0/3</small></span><i class="dot" id="dLic"></i></button>
- <button class="hb" id="bGrow">📈<i class="dot" id="dGrow"></i></button>
- <button class="hb" id="bTask">📋<i class="dot" id="dTask"></i></button>
- <button class="hb" id="bMall">🏬<i class="dot" id="dMall"></i></button>
- <button class="hb" id="bSet">⚙️</button>
+ <div class="hb" id="meters"></div>
 </div>
+<nav id="dock">
+ <button class="dk" id="bGrow"><span>📈</span>成長<i class="dot" id="dGrow"></i></button>
+ <button class="dk" id="bLic"><span>🚗</span><b id="licT">L牌</b><small id="licP">0/3</small><i class="dot" id="dLic"></i></button>
+ <button class="dk" id="bTask"><span>📋</span>任務<i class="dot" id="dTask"></i></button>
+ <button class="dk" id="bMall"><span>🏬</span>商場<i class="dot" id="dMall"></i></button>
+ <button class="dk" id="bSet"><span>⚙️</span>設定</button>
+</nav>
+<button class="pan" id="panL" aria-label="向左睇">◀</button><button class="pan" id="panR" aria-label="向右睇">▶</button>
+<div id="splash"><div class="logo">👶🚗</div><b>生仔要考牌</b><small>Parenthood Challenge</small><div class="ld"><i></i></div></div>
 <div id="evbar"></div>
 <div id="tipbox"></div>
 <div id="rot">📱 打橫玩睇得更闊（可以拖動背景左右睇）</div>
@@ -326,15 +426,15 @@ const G=(k,n)=>({k,n});
 const GOAL_TEXT={feed:'餵奶',diaper:'換片',burp:'掃風',sleep:'哄BB瞓著',sponge:'用海綿抹身',bath:'用浴盆沖涼',hug:'抱抱BB',smile:'逗BB笑',grasp:'畀玩具BB抓',tummy:'放喺地氈做俯臥練習',solid:'坐BB櫈食果蓉',toy:'同BB玩玩具'};
 const GOAL_HOW={feed:'BB肚餓時，拖奶樽去佢度',diaper:'BB屙尿屙屎後，拖尿片去佢度',burp:'飲完奶，快速輕拍BB三下',sleep:'眼瞓時抱入BB床（熄燈更快）',sponge:'拖海綿去BB身上',bath:'抱BB落浴盆',hug:'拖BB去爸媽身上',smile:'㩒BB逗佢笑',grasp:'拖玩具畀BB',tummy:'將BB放喺地氈中間',solid:'BB坐BB櫈，再拖果蓉畀佢',toy:'拖玩具畀BB'};
 const STAGES=[
- {age:'第1日',title:'新生BB報到',ms:'識飲奶、識喊、瞓好多',note:'新生BB胃仔好細，一般大約每 2 至 3 個鐘食一次奶，一日大約 8 至 12 次。臍帶未甩前，唔好落浴盆，用海綿抹身。',goals:f=>[G('feed',f==='breast'?8:7),G('diaper',5),G('burp',3),G('sleep',2),G('sponge',1)]},
- {age:'第3日',title:'返屋企第一步',ms:'開始認得爸媽把聲',note:'頭幾日濕尿片會慢慢增加，一般大約第 5、6 日起一日有 6 塊或以上濕尿片。',goals:f=>[G('feed',f==='breast'?8:7),G('diaper',6),G('burp',3),G('sleep',2),G('sponge',1)]},
- {age:'2星期',title:'臍帶甩咗喇',ms:'可以用浴盆沖涼',note:'臍帶一般喺 1 至 2 星期內甩，傷口乾咗之後就可以用浴盆沖涼。',goals:f=>[G('feed',f==='breast'?8:7),G('diaper',6),G('bath',1),G('sleep',2)]},
- {age:'滿月',title:'擺滿月酒',ms:'眼仔開始跟住嘢郁',note:'滿月喇！記得同親友分享紅雞蛋同薑醋 🥚。呢個階段多啲抱抱同講嘢。',goals:f=>[G('feed',f==='breast'?8:6),G('diaper',5),G('bath',1),G('hug',3)]},
- {age:'6星期',title:'第一次識笑',ms:'識對人笑 😊',note:'大約 6 至 8 星期，好多BB開始識對住人笑（社交性微笑）。',goals:f=>[G('feed',f==='breast'?7:6),G('diaper',5),G('smile',5),G('sleep',2)]},
- {age:'3個月',title:'識抓嘢',ms:'識伸手揸住玩具',note:'大約 3 個月，BB開始識伸手抓嘢，好鍾意搖鈴。',goals:f=>[G('feed',f==='breast'?6:5),G('diaper',5),G('grasp',3),G('bath',1)]},
- {age:'4個月',title:'識翻身',ms:'識由瞓低翻身',note:'俯臥練習要有大人喺旁邊睇住，唔好將BB單獨留喺高處（例如換片枱）。',goals:f=>[G('feed',f==='breast'?6:5),G('diaper',4),G('tummy',3),G('sleep',2)]},
- {age:'6個月',title:'開始食糊仔',ms:'識坐、開始食固體',note:'大約 6 個月開始引入固體食物（例如果蓉），同時繼續飲奶。',goals:f=>[G('feed',5),G('solid',2),G('diaper',4),G('toy',3)]}];
-const HUNGER_RATE=[16,15,14,13,12,11,10,10],SLEEP_RATE=[12,12,11,10,9,8,8,7];
+ {age:'第1日',title:'新生BB報到',ms:'識飲奶、識喊、瞓好多',note:'新生BB胃仔好細，一般大約每 2 至 3 個鐘食一次奶，一日大約 8 至 12 次。臍帶未甩前，唔好落浴盆，用海綿抹身。（遊戲時間濃縮咗：遊戲入面餵 3 次，代表現實大半日）',goals:f=>[G('feed',3),G('diaper',2),G('burp',1),G('sleep',1),G('sponge',1)]},
+ {age:'第3日',title:'返屋企第一步',ms:'開始認得爸媽把聲',note:'頭幾日濕尿片會慢慢增加，一般大約第 5、6 日起一日有 6 塊或以上濕尿片。',goals:f=>[G('feed',4),G('diaper',3),G('burp',2),G('sleep',1)]},
+ {age:'2星期',title:'臍帶甩咗喇',ms:'可以用浴盆沖涼',note:'臍帶一般喺 1 至 2 星期內甩，傷口乾咗之後就可以用浴盆沖涼。',goals:f=>[G('feed',4),G('diaper',3),G('bath',1),G('sleep',1)]},
+ {age:'滿月',title:'擺滿月酒',ms:'眼仔開始跟住嘢郁',note:'滿月喇！記得同親友分享紅雞蛋同薑醋 🥚。呢個階段多啲抱抱同講嘢。',goals:f=>[G('feed',4),G('diaper',3),G('bath',1),G('hug',2)]},
+ {age:'6星期',title:'第一次識笑',ms:'識對人笑 😊',note:'大約 6 至 8 星期，好多BB開始識對住人笑（社交性微笑）。',goals:f=>[G('feed',4),G('smile',4),G('diaper',3),G('sleep',1)]},
+ {age:'3個月',title:'識抓嘢',ms:'識伸手揸住玩具',note:'大約 3 個月，BB開始識伸手抓嘢，好鍾意搖鈴。',goals:f=>[G('feed',4),G('grasp',3),G('diaper',3),G('bath',1)]},
+ {age:'4個月',title:'識翻身',ms:'識由瞓低翻身',note:'俯臥練習要有大人喺旁邊睇住，唔好將BB單獨留喺高處（例如換片枱）。',goals:f=>[G('feed',4),G('tummy',3),G('diaper',3),G('sleep',2)]},
+ {age:'6個月',title:'開始食糊仔',ms:'識坐、開始食固體',note:'大約 6 個月開始引入固體食物（例如果蓉），同時繼續飲奶。',goals:f=>[G('feed',4),G('solid',2),G('diaper',3),G('toy',3)]}];
+const HUNGER_RATE=[26,22,18,16,14,12,11,10],SLEEP_RATE=[12,12,11,10,9,8,8,7];
 const LICS=[
  {id:'L',name:'L牌・新手爸媽',em:'🍼',stages:[0,1],exam:'night1',coins:100,reward:'新手證書'},
  {id:'P',name:'P牌・混亂求生',em:'💩',stages:[2,3],exam:'am3',coins:150,reward:'通宵戰士成就'},
@@ -384,7 +484,7 @@ const BRAND_TASKS=[
  {id:'bt_ld',brand:'ld',t:'好夢挑戰：哄BB喺 Little Dream 嬰兒床瞓著 2 次',k:'cribSleep',n:2,coins:50,hint:'BB眼瞓時抱入BB床'},
  {id:'bt_pp',brand:'pp',t:'玩具體驗日：同BB玩玩具 3 次',k:'toy',n:3,coins:40,hint:'拖任何玩具畀BB'}];
 const DAILY_POOL=[{k:'feed',n:4,t:'餵BB 4 次'},{k:'toy',n:3,t:'同BB玩玩具 3 次'},{k:'diaper',n:3,t:'換片 3 次'},{k:'music',n:1,t:'開收音機同BB跳舞'},{k:'hug',n:2,t:'抱抱BB 2 次'},{k:'bin',n:2,t:'掉 2 次臭尿片'},{k:'sleep',n:1,t:'哄BB瞓覺'},{k:'piggy',n:1,t:'收一次錢罌'},{k:'mallView',n:3,t:'喺商場睇 3 件商品'}];
-const ACH=[{k:'am3',n:1,name:'通宵戰士',em:'🌙'},{k:'out10',n:1,name:'出街專家',em:'👜'},{k:'bin',n:5,name:'臭彈處理專家',em:'💩'},{k:'hug',n:10,name:'抱抱狂魔',em:'🤗'},{k:'feed',n:30,name:'人肉奶樽',em:'🍼'},{k:'days',n:7,name:'一星期唔缺席',em:'📅'},{k:'babies',n:2,name:'多仔多福',em:'👶'},{k:'outfits',n:3,name:'時裝達人',em:'👕'}];
+const ACH=[{k:'am3',n:1,name:'通宵戰士',em:'🌙'},{k:'out10',n:1,name:'出街專家',em:'👜'},{k:'bin',n:5,name:'臭彈處理專家',em:'💩'},{k:'hug',n:10,name:'抱抱狂魔',em:'🤗'},{k:'feed',n:30,name:'人肉奶樽',em:'🍼'},{k:'days',n:7,name:'一星期唔缺席',em:'📅'},{k:'babies',n:2,name:'多仔多福',em:'👶'},{k:'outfits',n:3,name:'時裝達人',em:'👕'},{k:'moCert',n:1,name:'Mo嫂認證',em:'👵'}];
 const QUIPS=['我已經三日冇瞓過一覺完整…','咖啡… 我需要咖啡 ☕','原來BB屙屎可以咁大聲','考車牌都冇咁難…','BB笑一笑，乜都值得 🥹','頭先邊個話湊BB好輕鬆？','我嘅黑眼圈係勳章 🏅','奶粉錢… 我諗我要多份工 💸','嫲嫲又打嚟問BB食咗未 📞'];
 const GIGGLES=['咯咯咯～','嘻嘻！','啊～咕','噗～（吹口水泡）','哈！'];
 
@@ -405,22 +505,29 @@ function newSave(o){
   daily:null,streak:{last:'',n:0},lastNight:'',m:{first:t,sess:[],days:{}},lastSeen:t,muted:false,seenHint:false};
 }
 function load(){try{const t=localStorage.getItem(KEY);if(t)S=JSON.parse(t);}catch(e){S=null;}}
-function save(){if(!S)return;S.lastSeen=now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function saveNow(){if(!S)return;S.lastSeen=now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+let saveT=0;function save(){if(saveT)return;saveT=setTimeout(()=>{saveT=0;saveNow();},400);}
 const B=()=>S.babies[S.cur];
 
 /* =================== 舞台 =================== */
 let scale=1,offX=0,offY=0;
+function clampX(x){const aw=innerWidth-(R.dockW||0),w=SW*scale;if(w<=aw)return (aw-w)/2;return clamp(x,aw-w,0);}
 function layout(){
  const vw=innerWidth,vh=innerHeight;
- scale=Math.max(vw/SW,Math.min(vh/SH,vw/700));
- offY=Math.max(0,(vh-SH*scale)/2);
- if(vh>SH*scale+10)offY=Math.min(offY,Math.max(110,(vh-SH*scale)*.5));
- offX=clamp(offX,Math.min(0,vw-SW*scale),0);
+ const side=vh<520&&vw>vh;document.body.classList.toggle('sidedock',side);
+ const dockH=side?0:86;R.dockW=side?86:0;
+ const aw=vw-R.dockW,ah=vh-dockH;
+ scale=side?ah/SH:Math.min(ah/SH,aw/700);
+ offY=Math.max(0,(ah-SH*scale)/2);
+ if(ah>SH*scale+10)offY=Math.min(offY,Math.max(110,(ah-SH*scale)*.5));
+ offX=clampX(offX);
  $('rot').style.display=vh>vw*1.15?'block':'none';
  applyStage();
 }
-function applyStage(){stage.style.transform=`translate(${offX}px,${offY}px) scale(${scale})`;}
-function focusX(x){const vw=innerWidth;offX=clamp(vw/2-x*scale,Math.min(0,vw-SW*scale),0);applyStage();}
+function applyStage(){stage.style.transform=`translate3d(${offX}px,${offY}px,0) scale(${scale})`;if($('panL'))renderPanBtns();}
+function focusX(x,smooth){const vw=innerWidth;offX=clampX((vw-(R.dockW||0))/2-x*scale);if(smooth){stage.classList.add('cam');clearTimeout(R.camT);R.camT=setTimeout(()=>stage.classList.remove('cam'),500);}else{clearTimeout(R.camT);stage.classList.remove('cam');}applyStage();}
+function panBy(dx){const vw=innerWidth;offX=clampX(offX+dx);stage.classList.add('cam');clearTimeout(R.camT);R.camT=setTimeout(()=>stage.classList.remove('cam'),500);applyStage();}
+function renderPanBtns(){const aw=innerWidth-(R.dockW||0),min=Math.min(0,aw-SW*scale);$('panL').classList.toggle('show',offX<-4&&SW*scale>aw);$('panR').classList.toggle('show',offX>min+4&&SW*scale>aw);}
 function toStage(e){return {x:(e.clientX-offX)/scale,y:(e.clientY-offY)/scale};}
 addEventListener('resize',layout);
 
@@ -444,16 +551,25 @@ const EYES={
  silly:`<path d="M51 51l12 5l-12 5M99 51l-12 5l12 5" fill="none" stroke="#2b1d33" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>`};
 const MOUTH={
  smile:`<path d="M67 76q8 8 16 0" fill="none" stroke="#c9485b" stroke-width="4" stroke-linecap="round"/>`,
- grin:`<path d="M62 73q13 22 26 0z" fill="#d6455d"/><ellipse cx="75" cy="83" rx="6" ry="3" fill="#ff8fa3"/>`,
+ grin:`<path d="M62 73q13 22 26 0z" fill="#d6455d"/><ellipse cx="75" cy="83" rx="6" ry="3" fill="#ff8fa3"/><rect class="tooth" x="71" y="73" width="8" height="6" rx="2" fill="#fff"/>`,
  o:`<ellipse cx="75" cy="79" rx="6" ry="7" fill="#c9485b"/>`,suck:`<circle cx="75" cy="78" r="4" fill="#c9485b"/>`,
  flat:`<path d="M68 79h14" stroke="#c9485b" stroke-width="4" stroke-linecap="round"/>`,
  wail:`<path d="M62 72q13 -5 26 0q-3 16 -13 16q-10 0 -13 -16z" fill="#d6455d"/>`,
  chomp:`<path d="M64 76q11 6 22 0" fill="none" stroke="#c9485b" stroke-width="5" stroke-linecap="round"/>`,
  tongue:`<path d="M66 75q9 8 18 0" fill="none" stroke="#c9485b" stroke-width="4" stroke-linecap="round"/><path d="M71 78q4 12 9 0" fill="#ff8fa3"/>`};
-function hairSVG(g){
- if(g==='girl')return `<path d="M52 18q8 -16 23 -12q15 -4 23 12q-10 -6 -23 -4q-13 -2 -23 4z" fill="#6b4226"/><g transform="translate(98 16) rotate(15)"><path d="M0 0l-15 -11v22z" fill="#ff5d8f"/><path d="M0 0l15 -11v22z" fill="#ff5d8f"/><circle r="6" fill="#ff8fb1"/></g><path d="M47 52l-6 -4M47 56l-7 -1M103 52l6 -4M103 56l7 -1" stroke="#2b1d33" stroke-width="2.4" stroke-linecap="round" class="lash"/>`;
- return `<path d="M60 14l5 -16l6 11l6 -14l4 13l7 -9l-1 16q-14 -6 -27 -1z" fill="#6b4226"/>`;
+function hairSVG(g,st){
+ st=st==null?(S&&S.babies&&B()?B().stage:2):st;
+ const lash='<path d="M47 52l-6 -4M47 56l-7 -1M103 52l6 -4M103 56l7 -1" stroke="#2b1d33" stroke-width="2.4" stroke-linecap="round" class="lash"/>';
+ const bow=(x,y,k)=>`<g transform="translate(${x} ${y}) rotate(15) scale(${k})"><path d="M0 0l-15 -11v22z" fill="#ff5d8f"/><path d="M0 0l15 -11v22z" fill="#ff5d8f"/><circle r="6" fill="#ff8fb1"/></g>`;
+ let h;
+ if(st<=1)h=`<path d="M72 8q4 -10 10 -4" stroke="#6b4226" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+ else if(st<=3)h=g==='girl'?`<path d="M52 18q8 -16 23 -12q15 -4 23 12q-10 -6 -23 -4q-13 -2 -23 4z" fill="#6b4226"/>`:`<path d="M60 14l5 -16l6 11l6 -14l4 13l7 -9l-1 16q-14 -6 -27 -1z" fill="#6b4226"/>`;
+ else if(st<=5)h=g==='girl'?`<path d="M36 40q4 -40 39 -40q35 0 39 40q-12 -20 -39 -22q-27 2 -39 22z" fill="#6b4226"/>`:`<path d="M40 34q6 -34 35 -34q29 0 35 34l-6 -10l-4 8l-6 -12l-5 9l-6 -12l-4 10l-6 -12l-5 10l-6 -10l-6 12z" fill="#6b4226"/>`;
+ else h=g==='girl'?`<path d="M30 52q0 -54 45 -54q45 0 45 54q-6 -30 -45 -32q-39 2 -45 32z" fill="#6b4226"/><circle cx="34" cy="44" r="9" fill="#6b4226"/><circle cx="116" cy="44" r="9" fill="#6b4226"/>`:`<path d="M30 46q2 -48 45 -48q43 0 45 48q-6 -14 -14 -18l-4 8l-8 -12l-6 9l-8 -12l-6 10l-8 -11l-6 10l-8 -8q-12 6 -22 24z" fill="#6b4226"/>`;
+ if(g==='girl')h+=(st<=1?bow(96,14,.75):bow(st>=6?100:98,st>=6?10:16,1))+lash;
+ return h;
 }
+const BB_SCALE=[.64,.7,.78,.84,.9,.95,1,1.06];
 function hoodSVG(h,c){
  if(h==='bunny')return `<ellipse cx="50" cy="-14" rx="11" ry="34" fill="${c}" transform="rotate(-14 50 -14)"/><ellipse cx="50" cy="-12" rx="5" ry="24" fill="#ffb3c8" transform="rotate(-14 50 -12)"/><ellipse cx="100" cy="-14" rx="11" ry="34" fill="${c}" transform="rotate(14 100 -14)"/><ellipse cx="100" cy="-12" rx="5" ry="24" fill="#ffb3c8" transform="rotate(14 100 -12)"/><circle cx="75" cy="54" r="56" fill="${c}"/>`;
  if(h==='bear')return `<circle cx="34" cy="14" r="17" fill="${c}"/><circle cx="34" cy="14" r="8" fill="#e9c39b"/><circle cx="116" cy="14" r="17" fill="${c}"/><circle cx="116" cy="14" r="8" fill="#e9c39b"/><circle cx="75" cy="54" r="56" fill="${c}"/>`;
@@ -468,20 +584,35 @@ function bellySVG(t){
  return `<rect x="58" y="114" width="34" height="22" rx="9" fill="#fff" opacity=".6"/>`;
 }
 function bbSVG(){return `<svg class="bbmain" viewBox="0 0 150 170"><ellipse cx="75" cy="165" rx="54" ry="7" fill="rgba(0,0,0,.14)"/><g class="bbbody">
- <ellipse cx="46" cy="150" rx="22" ry="14" class="ones"/><ellipse cx="104" cy="150" rx="22" ry="14" class="ones"/>
- <circle cx="30" cy="153" r="10" class="skin"/><circle cx="120" cy="153" r="10" class="skin"/>
+ <g class="legs"><ellipse cx="46" cy="150" rx="22" ry="14" class="ones"/><ellipse cx="104" cy="150" rx="22" ry="14" class="ones"/>
+ <circle cx="30" cy="153" r="10" class="skin"/><circle cx="120" cy="153" r="10" class="skin"/></g>
  <path d="M28 146q0 -52 47 -52q47 0 47 52z" class="ones"/><g class="belly"></g>
  <g class="armL"><ellipse cx="34" cy="120" rx="13" ry="20" class="ones"/><circle cx="31" cy="137" r="10" class="skin"/></g>
  <g class="armR"><ellipse cx="116" cy="120" rx="13" ry="20" class="ones"/><circle cx="119" cy="137" r="10" class="skin"/></g>
+ <g class="swaddle"><path d="M30 150q-10 -66 45 -68q55 2 45 68q-8 18 -45 18q-37 0 -45 -18z" class="ones"/><path d="M36 104q39 30 78 0" stroke="rgba(255,255,255,.65)" stroke-width="6" fill="none"/><path d="M60 110q24 26 50 40" stroke="rgba(0,0,0,.07)" stroke-width="5" fill="none"/><circle cx="75" cy="140" r="5" fill="rgba(255,255,255,.7)"/></g>
+ <g class="trait"></g>
  <g class="head"><g class="hood"></g><circle cx="75" cy="54" r="48" class="skin"/><circle cx="28" cy="58" r="10" class="skin"/><circle cx="122" cy="58" r="10" class="skin"/>
   <g class="hair"></g>
   <circle cx="45" cy="70" r="9" fill="#ff9aa2" opacity=".75"/><circle cx="105" cy="70" r="9" fill="#ff9aa2" opacity=".75"/>
   <g class="eyes"></g><g class="mouth"></g>
   <g class="smudge" opacity="0"><ellipse cx="92" cy="82" rx="10" ry="7" fill="#ffb703"/><circle cx="58" cy="86" r="5" fill="#ffb703"/><circle cx="84" cy="94" r="4" fill="#ffb703"/></g>
+  <g class="cap"><path d="M28 44q47 -66 94 0q-47 -14 -94 0z" fill="#fff"/><path d="M30 42q45 -14 90 0" stroke="#9ad9f5" stroke-width="6" fill="none"/><circle cx="75" cy="-6" r="8" fill="#9ad9f5"/></g>
   <g class="hat"></g></g></g></svg>
  <svg class="stink" viewBox="0 0 90 60"><path d="M20 55q-8 -10 0 -20t0 -20" stroke="#7dbf4a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M45 55q-8 -10 0 -20t0 -20" stroke="#7dbf4a" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M70 55q-8 -10 0 -20t0 -20" stroke="#7dbf4a" stroke-width="5" fill="none" stroke-linecap="round"/></svg>
  <div class="need"></div>`;}
-function miniBB(outfitId,g){const o=OUTFITS[outfitId]||OUTFITS['base_'+g];return `<svg viewBox="-10 -50 170 220" width="110" height="140"><g><ellipse cx="46" cy="150" rx="22" ry="14" fill="${o.c}"/><ellipse cx="104" cy="150" rx="22" ry="14" fill="${o.c}"/><path d="M28 146q0 -52 47 -52q47 0 47 52z" fill="${o.c}"/>${bellySVG(o.belly)}<ellipse cx="34" cy="120" rx="13" ry="20" fill="${o.c}"/><ellipse cx="116" cy="120" rx="13" ry="20" fill="${o.c}"/>${hoodSVG(o.hood,o.c)}<circle cx="75" cy="54" r="48" fill="#ffd6b8"/>${hairSVG(g)}<circle cx="45" cy="70" r="9" fill="#ff9aa2" opacity=".75"/><circle cx="105" cy="70" r="9" fill="#ff9aa2" opacity=".75"/>${EYES.happy}${MOUTH.grin}</g></svg>`;}
+function miniBB(outfitId,g,st,w){st=st==null?(S&&S.babies&&B()?B().stage:2):st;const o=OUTFITS[outfitId]||OUTFITS['base_'+g];const k=BB_SCALE[st]||1;w=w||110;
+ const body=st<=1?`<path d="M30 150q-10 -66 45 -68q55 2 45 68q-8 18 -45 18q-37 0 -45 -18z" fill="${o.c}"/><path d="M36 104q39 30 78 0" stroke="rgba(255,255,255,.65)" stroke-width="6" fill="none"/>`:`<ellipse cx="46" cy="150" rx="22" ry="14" fill="${o.c}"/><ellipse cx="104" cy="150" rx="22" ry="14" fill="${o.c}"/><path d="M28 146q0 -52 47 -52q47 0 47 52z" fill="${o.c}"/>${bellySVG(o.belly)}<ellipse cx="34" cy="120" rx="13" ry="20" fill="${o.c}"/><ellipse cx="116" cy="120" rx="13" ry="20" fill="${o.c}"/>`;
+ const cap=st===1?`<path d="M28 44q47 -66 94 0q-47 -14 -94 0z" fill="#fff"/><path d="M30 42q45 -14 90 0" stroke="#9ad9f5" stroke-width="6" fill="none"/>`:'';
+ return `<svg viewBox="-10 -50 170 220" width="${w}" height="${Math.round(w*1.27)}"><g transform="translate(75 168) scale(${k}) translate(-75 -168)">${body}${hoodSVG(o.hood,o.c)}<circle cx="75" cy="54" r="48" fill="#ffd6b8"/>${o.hood?'':hairSVG(g,st)}${cap}<circle cx="45" cy="70" r="9" fill="#ff9aa2" opacity=".75"/><circle cx="105" cy="70" r="9" fill="#ff9aa2" opacity=".75"/>${EYES.happy}${MOUTH.grin.replace('class="tooth"',st>=6?'':'class="tooth" style="display:none"')}</g></svg>`;}
+const TRAITS={eat:{n:'貪食BB',em:'🍼'},clean:{n:'愛乾淨BB',em:'✨'},cling:{n:'黐身BB',em:'💗'},play:{n:'好動BB',em:'⚡'}};
+const TRAIT_OF={feed:'eat',solid:'eat',diaper:'clean',bath:'clean',sponge:'clean',hug:'cling',sleep:'cling',smile:'play',grasp:'play',tummy:'play',toy:'play',burp:'eat'};
+function traitSVG(t){
+ if(t==='eat')return `<path d="M54 98q21 30 42 0v-4h-42z" fill="#fff"/><path d="M54 98q21 30 42 0" stroke="#ff8fb1" stroke-width="3" fill="none"/><text x="75" y="113" text-anchor="middle" font-size="12" font-weight="900" fill="#ff8fb1">食</text>`;
+ if(t==='clean')return `<path d="M118 22l4 9l9 4l-9 4l-4 9l-4 -9l-9 -4l9 -4z" fill="#ffd166"/><path d="M26 30l3 6l6 3l-6 3l-3 6l-3 -6l-6 -3l6 -3z" fill="#9ad9f5"/>`;
+ if(t==='cling')return `<path d="M75 128q-12 -8 -10 -15q2 -6 10 -1q8 -5 10 1q2 7 -10 15z" fill="#ff4f7b"/>`;
+ if(t==='play')return `<path d="M108 100l6 -18l6 18l-18 -11h24z" fill="#ffd166" stroke="#f5a623" stroke-width="2"/>`;
+ return '';
+}
 function paSVG(mum){
  const hair=mum?`<path d="M28 108q-4 -66 57 -66q61 0 57 66q-10 -40 -57 -40q-47 0 -57 40z" fill="#4a2c1d"/><circle cx="85" cy="40" r="22" fill="#4a2c1d"/>`:`<path d="M30 100q0 -58 55 -58q55 0 55 58q-14 -30 -55 -30q-41 0 -55 30z" fill="#2b1d16"/><path d="M50 150q35 24 70 0q-6 14 -35 16q-29 -2 -35 -16z" fill="#2b1d16" opacity=".35"/>`;
  return `<svg viewBox="0 0 170 400"><ellipse cx="85" cy="394" rx="60" ry="8" fill="rgba(0,0,0,.14)"/>
@@ -500,7 +631,7 @@ const bagSVG=`<svg viewBox="0 0 110 110" width="110" height="110"><path d="M30 3
 /* =================== 實體 =================== */
 const E={};let uid=1;
 function mkEnt(id,cls,html,w,h){const d=document.createElement('div');d.className='ent '+cls;d.id=id;d.innerHTML=html;d.style.width=w+'px';d.style.height=h+'px';stage.appendChild(d);d.addEventListener('pointerdown',e=>onDown(e,id));return d;}
-function placeEl(el,x,y,w,h,z){el.style.left=(x-w/2)+'px';el.style.top=(y-h)+'px';el.style.zIndex=z!=null?z:Math.round(y)+1000;}
+function placeEl(el,x,y,w,h,z){el.style.left='0';el.style.top='0';el.style.transform=`translate3d(${(x-w/2).toFixed(1)}px,${(y-h).toFixed(1)}px,0)`;const zz=String(z!=null?z:Math.round(y)+1000);if(el.style.zIndex!==zz)el.style.zIndex=zz;}
 function itemHTML(it){if(it.t==='bottle')return bottleSVG(it.lv);if(it.t==='jar')return jarSVG(it.full);if(it.t==='diaper'||it.t==='dirty')return diaperSVG(it.t==='dirty');return `<span class="em">${IT[it.t].em}</span>`;}
 function spawnItem(it){it.id=it.id&&!E[it.id]?it.id:('i'+(uid++));const el=mkEnt(it.id,'item'+(IT[it.t].float?' float':''),itemHTML(it),72,72);E[it.id]={kind:'item',it,el};drawItem(it);return it;}
 function drawItem(it){const e=E[it.id];if(!e)return;e.el.style.display=it.inBag?'none':'';placeEl(e.el,it.x,it.y,72,72,it.held?1830:undefined);}
@@ -511,18 +642,22 @@ function drawBB(){const b=B();if(b.loc==='held'){b.x=S.pa.x+6;b.y=640;}if(b.loc=
 function drawPA(){placeEl($('pa'),S.pa.x,792,170,400);}
 function setFace(e,m){const el=bbEl();if(!el)return;if(e&&el.dataset.e!==e){el.dataset.e=e;el.querySelector('.eyes').innerHTML=EYES[e];}if(m&&el.dataset.m!==m){el.dataset.m=m;el.querySelector('.mouth').innerHTML=MOUTH[m];}}
 function bbCls(c,ms){R.lastAct=now();const el=bbEl();el.classList.remove(c);void el.offsetWidth;el.classList.add(c);if(ms)setTimeout(()=>el.classList.remove(c),ms);}
-function applyLook(b,outfitOverride){
- b=b||B();const el=bbEl();if(!el)return;const oid=outfitOverride||b.outfit;const o=OUTFITS[oid]||OUTFITS['base_'+b.gender];
+function applyLook(b,outfitOverride,stOv){
+ b=b||B();const ST=stOv!=null?stOv:b.stage;const el=bbEl();if(!el)return;const oid=outfitOverride||b.outfit;const o=OUTFITS[oid]||OUTFITS['base_'+b.gender];
  el.style.setProperty('--ones',o.c);
  el.querySelector('.hood').innerHTML=hoodSVG(o.hood,o.c);
  el.querySelector('.belly').innerHTML=bellySVG(o.belly||(b.gender==='girl'?'heart':'star'));
  el.querySelector('.hair').innerHTML=o.hood?'':hairSVG(b.gender);
  if(o.hood&&b.gender==='girl')el.querySelector('.hair').innerHTML='<path d="M47 52l-6 -4M47 56l-7 -1M103 52l6 -4M103 56l7 -1" stroke="#2b1d33" stroke-width="2.4" stroke-linecap="round"/>';
- el.querySelector('.bbmain').style.transform=`scale(${(.82+b.stage*.04).toFixed(2)})`;
+ el.querySelector('.bbmain').style.scale=BB_SCALE[ST]||1;
+ el.querySelector('.hair').innerHTML=o.hood?(b.gender==='girl'?'<path d="M47 52l-6 -4M47 56l-7 -1M103 52l6 -4M103 56l7 -1" stroke="#2b1d33" stroke-width="2.4" stroke-linecap="round"/>':''):hairSVG(b.gender,ST);
+ for(let i=0;i<8;i++)el.classList.toggle('st'+i,ST===i);
+ el.querySelector('.trait').innerHTML=traitSVG(b.trait);
 }
 
 /* =================== 特效 =================== */
-function fx(t,x,y,cls,delay){const d=document.createElement('div');d.className='fx '+(cls||'');d.textContent=t;d.style.left=x+'px';d.style.top=y+'px';d.style.setProperty('--dx',rand(-60,60)+'px');if(delay){d.style.animationDelay=delay+'ms';d.style.opacity=0;}stage.appendChild(d);setTimeout(()=>d.remove(),2700+(delay||0));}
+let fxN=0;
+function fx(t,x,y,cls,delay){const lite=document.body.classList.contains('lite');if(fxN>=(lite?6:22))return;fxN++;setTimeout(()=>fxN--,2700+(delay||0));const d=document.createElement('div');d.className='fx '+(cls||'');d.textContent=t;d.style.left=x+'px';d.style.top=y+'px';d.style.setProperty('--dx',rand(-60,60)+'px');if(delay){d.style.animationDelay=delay+'ms';d.style.opacity=0;}stage.appendChild(d);setTimeout(()=>d.remove(),2700+(delay||0));}
 function burst(t,n,x,y){for(let i=0;i<n;i++)fx(t,x+rand(-60,60),y+rand(-20,20),'',i*110);}
 const sayMap={};
 function sayAt(key,x,y,t,ms){if(sayMap[key])sayMap[key].remove();const d=document.createElement('div');d.className='say';d.textContent=t;d.style.left=x+'px';d.style.top=y+'px';stage.appendChild(d);sayMap[key]=d;setTimeout(()=>{if(sayMap[key]===d){d.remove();delete sayMap[key];}},ms||2200);}
@@ -530,13 +665,15 @@ function bbSay(t,ms){R.lastAct=now();sayAt('bb',B().x,B().y-180,t,ms);}
 function paSay(t,ms){sayAt('pa',S.pa.x,380,t,ms);}
 let toastT=0;function toast(t,ms){const s=$('toast');s.textContent=t;s.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>s.classList.remove('show'),ms||2600);}
 function pulse(id){const h=$(id);h.classList.remove('pulse');void h.offsetWidth;h.classList.add('pulse');}
-function reward(c,h,x,y){if(c){S.coins+=c;pulse('hCoins');}if(h){S.hearts+=h;pulse('hHearts');}SND.coin();if(x!=null)fx(`${c?'+'+c+'🪙 ':''}${h?'+'+h+'❤️':''}`,x,y,'txt');renderHUD();}
+function coinFly(x,y){if(document.body.classList.contains('lite'))return;const t=$('hCoins').getBoundingClientRect();const sx=x*scale+offX,sy=y*scale+offY;const d=document.createElement('div');d.className='coinfly';d.textContent='🪙';d.style.left=sx+'px';d.style.top=sy+'px';document.body.appendChild(d);requestAnimationFrame(()=>requestAnimationFrame(()=>{d.style.transform=`translate(${t.left+20-sx}px,${t.top+8-sy}px) scale(.7)`;d.style.opacity='.4';}));setTimeout(()=>d.remove(),760);}
+function reward(c,h,x,y){if(c){S.coins+=c;pulse('hCoins');if(x!=null)coinFly(x,y);}if(h){S.hearts+=h;pulse('hHearts');}SND.coin();if(x!=null)fx(`${c?'+'+c+'🪙 ':''}${h?'+'+h+'❤️':''}`,x,y,'txt');renderHUD();}
 
 /* =================== 拖放 =================== */
 let drag=null,pan=null;
 function onDown(e,id){
  if(EV&&EV.over)return;
  if(id==='pa'||id==='bb'){const under=document.elementsFromPoint(e.clientX,e.clientY).find(el=>el.classList&&el.classList.contains('item')&&E[el.id]&&E[el.id].kind==='item');if(under&&id==='pa')id=under.id;}
+ if(id==='mo'){const under=document.elementsFromPoint(e.clientX,e.clientY).find(el=>el.classList&&el.classList.contains('item')&&E[el.id]&&E[el.id].kind==='item');if(under)id=under.id;else{e.preventDefault();e.stopPropagation();tapMo();return;}}
  e.preventDefault();e.stopPropagation();au();
  const p=toStage(e);
  const ent=id==='bb'?{kind:'bb'}:id==='pa'?{kind:'pa'}:id==='strB'?{kind:'str'}:E[id];
@@ -548,14 +685,29 @@ function onDown(e,id){
  drag={id,ent,pid:e.pointerId,sx:e.clientX,sy:e.clientY,ox:obj.x-p.x,oy:obj.y-p.y,moved:false,el:$(id)};
  try{$(id).setPointerCapture(e.pointerId);}catch(_){}
 }
+function zoneHints(kind,it){
+ clearZoneHints();const Zs=[];const bbR=()=>{const r=bbRect();return {x:r.x,y:r.y,w:r.w,h:r.h,l:'畀BB',c:'bb'};};
+ if(kind==='bb'){Zs.push({...Z.crib,l:'BB床'});if(B().stage>=2)Zs.push({...Z.tub,l:'浴盆'});if(B().stage>=7)Zs.push({...Z.chair,l:'BB櫈'});Zs.push({...paRect(),l:'抱抱',c:'bb'});if(strollerActive())Zs.push({...strZone(),l:'嬰兒車'});}
+ else if(it){const t=it.t;
+  if(t==='bottle'){if(it.lv<=0)Zs.push({...Z.mach,l:'斟奶'});else Zs.push(bbR());}
+  else if(t==='dirty'||(t==='jar'&&!it.full))Zs.push({...Z.bin,l:'垃圾桶'});
+  else if(t==='diaper'){if(B().dia)Zs.push(bbR());}
+  else if(t==='sponge'||t==='jar')Zs.push(bbR());
+  else if(IT[t]&&IT[t].toy){Zs.push(bbR());Zs.push({...Z.box,l:'收埋'});}
+  if(EV&&EV.bag&&BAG_ITEMS.includes(t))Zs.push({...bagZone(),l:'媽咪袋'});}
+ for(const z of Zs){const d=document.createElement('div');d.className='zh '+(z.c||'');d.style.cssText=`left:${z.x}px;top:${z.y}px;width:${z.w}px;height:${z.h}px`;d.innerHTML=`<b>${z.l}</b>`;stage.appendChild(d);}
+}
+function clearZoneHints(){document.querySelectorAll('.zh').forEach(e=>e.remove());}
+function buzz(ms){try{if(navigator.vibrate)navigator.vibrate(ms);}catch(_){}}
 function startLift(){
  const d=drag;d.moved=true;d.el.classList.remove('fall','glide','walk');d.el.classList.add('lift');SND.pick();
  if(d.ent.kind==='bb'){const b=B();if(b.asleep)wake(true);if(b.loc==='held')$('pa').classList.remove('holding');b.loc='lift';setFace('wide','o');evMark('bb');}
  if(d.ent.kind==='item'){evMark(d.ent.it.t,d.ent.it);}
+ zoneHints(d.ent.kind,d.ent.it);buzz(12);
  hideHint();
 }
 addEventListener('pointermove',e=>{
- if(pan&&e.pointerId===pan.pid){offX=clamp(pan.ox+(e.clientX-pan.sx),Math.min(0,innerWidth-SW*scale),0);applyStage();return;}
+ if(pan&&e.pointerId===pan.pid){offX=clampX(pan.ox+(e.clientX-pan.sx));applyStage();return;}
  if(!drag||e.pointerId!==drag.pid)return;
  if(!drag.moved){if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<8)return;startLift();}
  drag.lx=e.clientX;
@@ -568,16 +720,17 @@ addEventListener('pointermove',e=>{
 function endDrag(e){
  if(pan&&e.pointerId===pan.pid){pan=null;return;}
  if(!drag||e.pointerId!==drag.pid)return;
- const d=drag;drag=null;d.el.classList.remove('lift');
+ const d=drag;drag=null;d.el.classList.remove('lift');clearZoneHints();
  const k=d.ent.kind;
  if(!d.moved){if(k==='bb')tapBB();else if(k==='pa')tapPA();else tapItem(d.ent.it);return;}
  const p=toStage(e);SND.drop();
- if(k==='bb')dropBB(p);else if(k==='pa'){drawPA();save();}else dropItem(d.ent.it,p);
+ buzz(8);
+ if(k==='bb'){dropBB(p);setTimeout(()=>{const sx=B().x*scale+offX;if(sx<innerWidth*.15||sx>innerWidth*.85)focusX(B().x,true);},700);}else if(k==='pa'){drawPA();save();}else dropItem(d.ent.it,p);
  clearHover();
 }
 addEventListener('pointerup',endDrag);addEventListener('pointercancel',endDrag);
 vp.addEventListener('pointerdown',e=>{if(drag)return;au();pan={pid:e.pointerId,sx:e.clientX,ox:offX};});
-function autoPan(){if(drag&&drag.moved&&drag.lx!=null){const vw=innerWidth;if(drag.lx<60)offX+=10;else if(drag.lx>vw-60)offX-=10;offX=clamp(offX,Math.min(0,vw-SW*scale),0);applyStage();}}
+function autoPan(){if(drag&&drag.moved&&drag.lx!=null){const vw=innerWidth;if(drag.lx<60)offX+=10;else if(drag.lx>vw-60)offX-=10;offX=clampX(offX);applyStage();}}
 const inR=(p,r)=>p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h;
 const Z={crib:{x:745,y:370,w:255,h:235},tub:{x:1100,y:430,w:200,h:175},chair:{x:1318,y:360,w:130,h:150},bin:{x:240,y:480,w:110,h:130},mach:{x:500,y:345,w:110,h:105},box:{x:1450,y:470,w:140,h:135}};
 const strZone=()=>({x:S.strollerX-105,y:600,w:210,h:200});
@@ -625,13 +778,14 @@ function placeBB(loc,p){
 }
 function dropBB(p){
  const b=B();
+ if(moPresent()&&inR(p,moRect())){placeBB('floor',{x:MOX-160,y:770});moSay('自己個BB自己抱啦 😏 我睇住你','tip');return setTimeout(idleFace,700);}
  if(strollerActive()&&inR(p,strZone())){placeBB('stroller');onStroller();}
  else if(inR(p,paRect())){placeBB('held');onHeld();}
  else if(inR(p,Z.crib)){placeBB('crib');onCrib();}
- else if(inR(p,Z.tub)){if(b.stage<2){placeBB('floor',{x:1200,y:760});bbSay('臍帶未甩，暫時用海綿抹身 🧽',2200);SND.bad();}else{placeBB('tub');onTub();}}
+ else if(inR(p,Z.tub)){if(b.stage<2){placeBB('floor',{x:1200,y:760});bbSay('臍帶未甩，暫時用海綿抹身 🧽',2200);SND.bad();moJudge(false,'臍帶未甩唔好浸水！用海綿抹身，臍帶位保持乾爽','cord');}else{placeBB('tub');onTub();}}
  else if(inR(p,Z.chair)){if(b.stage<7){placeBB('floor',{x:1380,y:770});bbSay('BB未識坐，6個月先坐BB櫈 🪑',2200);SND.bad();}else{placeBB('chair');setFace('happy','grin');bbSay('坐BB櫈！準備開餐 🥄');SND.giggle();}}
- else if(inR(p,Z.box)){placeBB('floor',{x:1420,y:760});bbSay('BB唔係玩具嚟㗎 😂');paSay('唔好將BB收埋呀！');SND.giggle();}
- else if(inR(p,Z.bin)){placeBB('floor',{x:380,y:760});paSay('喂！！BB唔可以掉 😱');SND.bad();}
+ else if(inR(p,Z.box)){placeBB('floor',{x:1420,y:760});bbSay('BB唔係玩具嚟㗎 😂');paSay('唔好將BB收埋呀！');SND.giggle();moJudge(false,'你搞乜鬼呀！BB唔可以放入玩具箱 😱','silly');}
+ else if(inR(p,Z.bin)){placeBB('floor',{x:380,y:760});paSay('喂！！BB唔可以掉 😱');SND.bad();moJudge(false,'嘩！你想嚇死我咩 😱','silly');}
  else if(b.stage>=6&&onRug(p)){placeBB('floor',{x:clamp(p.x,560,1080),y:clamp(p.y,680,760)});tummy();}
  else{placeBB('floor',p);setFace(b.stage>=4?'happy':'open','smile');}
  setTimeout(idleFace,700);
@@ -641,7 +795,7 @@ function onHeld(){
  if(S.parent==='mum'&&b.feed==='breast'&&b.needs.hunger<=85&&!R.busy)return breastfeed();
  setFace('happy',b.stage>=4?'grin':'smile');bbCls('bounce',1300);burst('💗',4,S.pa.x,520);SND.giggle();
  b.needs.fun=Math.min(100,b.needs.fun+15);bbSay(pick(['抱抱～','暖笠笠 🥰','聞到爸媽個味好安心']));
- if(cd('hug',8000)){reward(1,2,S.pa.x,420);track('hug');}
+ if(cd('hug',8000)){reward(1,2,S.pa.x,420);track('hug');if(Math.random()<.5)moJudge(true,'多啲抱，BB好有安全感 🥰','hug');}
  evSolve('hug');
 }
 function breastfeed(){
@@ -649,11 +803,11 @@ function breastfeed(){
  let k=0;const iv=setInterval(()=>{k++;SND.gulp();setFace('closed',k%2?'o':'suck');if(k>=7){clearInterval(iv);done();}},380);
  function done(){R.busy=false;afterFeed(b,45);}
 }
-function feedGain(b){return [40,40,42,45,48,50,52,55][b.stage];}
+function feedGain(b){return [34,36,40,44,48,50,52,55][b.stage];}
 function afterFeed(b,gain){
  R.lastFeedT=now();b.needs.hunger=Math.min(100,b.needs.hunger+gain);b.needBurp=now()+90000;
- setFace('happy','smile');bbSay('飲飽喇 😋',1500);reward(3,2,b.x,b.y-170);track('feed');evSolve('hungry');
- if(Math.random()<(b.stage<2?.9:.7))R.diaperAt=now()+rand(12000,35000);
+ setFace('happy','smile');bbSay('飲飽喇 😋',1500);reward(3,2,b.x,b.y-170);moJudge(true,pick(['餵得好！記得掃風 👋','BB飲得好舒服，好！']),'feed');track('feed');evSolve('hungry');
+ if(Math.random()<(b.stage<2?.9:.7))R.diaperAt=now()+(b.stage<2?rand(6000,14000):rand(12000,30000));
  setTimeout(()=>{if(b.needBurp>now()&&B()===b)paSay('記得掃風：輕拍BB三下 👋',2600);},1600);
  save();setTimeout(idleFace,1500);
 }
@@ -663,7 +817,7 @@ function onCrib(){
  if(sleepy&&!isCryingOther()){R.yawn=now()+1800;bbSay('呵～ 😪',1500);setFace('closed','o');}
  else bbSay(isCryingOther()?'唔舒服瞓唔著…':'未眼瞓！要玩 🙌',1800);
 }
-function fallAsleep(){const b=B();if(b.asleep||!['crib','stroller'].includes(b.loc))return;b.asleep=true;R.sleepSec=0;idleFace();SND.pop();reward(3,2,b.x,b.y-170);track('sleep');if(b.loc==='crib')track('cribSleep'),pUse(S.crib);fx('💤',b.x+50,b.y-160);save();}
+function fallAsleep(){const b=B();if(b.asleep||!['crib','stroller'].includes(b.loc))return;b.asleep=true;R.sleepSec=0;idleFace();SND.pop();reward(3,2,b.x,b.y-170);track('sleep');if(b.loc==='crib'){track('cribSleep');pUse(S.crib);if(cribItems().length){moJudge(false,'BB瞓覺，床上唔好放公仔同雜物（安全睡眠）','safe');R.cribCheck=now();}else if(moPresent())moJudge(true,'仰瞓、床上冇雜物，好安全 ✅','safe');}fx('💤',b.x+50,b.y-160);save();}
 function wake(byDrag){const b=B();if(!b.asleep)return;b.asleep=false;if(byDrag&&b.needs.sleep<70){bbSay('嗚… 未瞓夠 😫',1600);setFace('cry','wail');}else{bbSay('瞓飽喇！☀️',1500);setFace('happy','grin');bbCls('bounce',1200);}setTimeout(idleFace,1600);}
 function onTub(){
  const b=B();R.busy=true;setFace('happy','grin');bbCls('bounce',1300);SND.splash();burst('🫧',6,b.x,b.y-100);bbSay('沖涼囉～ 💦',1800);
@@ -710,6 +864,7 @@ function tapStroller(){
 /* =================== 物品 =================== */
 function dropItem(it,p){
  if(EV&&EV.bag&&inR(p,bagZone()))return toBag(it);
+ if(moPresent()&&inR(p,moRect())){moSay(pick(['畀我做乜？你自己嚟！我喺度睇住你 😌','我淨係教，唔代勞㗎 😏']),'tip');return settle(it,{x:MOX-150,y:775});}
  if(inR(p,bbRect())&&B().loc!=='lift')return useOnBB(it);
  if(inR(p,Z.bin))return toBin(it);
  if(inR(p,Z.mach)&&it.t==='bottle')return refill(it);
@@ -725,7 +880,7 @@ function useOnBB(it){
  if(R.busy)return settle(it,nearBB());
  if(b.asleep){bbSay('Zzz… 💤',1200);return settle(it,nearBB());}
  switch(it.t){
-  case 'bottle':if(it.lv<=0)return refuseItem(it,'空樽嚟㗎！😤');if(n.hunger>85)return refuseItem(it,'唔肚餓呀～');return drink(it);
+  case 'bottle':if(it.lv<=0){moJudge(false,'空樽餵乜呀？先拖去沖奶機斟奶','empty');return refuseItem(it,'空樽嚟㗎！😤');}if(n.hunger>85){moJudge(false,'BB唔肚餓就唔好硬餵，睇佢肚餓訊號：咂嘴、咬手指','overfeed');return refuseItem(it,'唔肚餓呀～');}return drink(it);
   case 'jar':if(b.stage<7)return refuseItem(it,'BB未夠6個月，淨係飲奶就夠');if(!it.full)return refuseItem(it,'已經食晒喇！');if(n.hunger>90)return refuseItem(it,'飽飽，唔食喇');return eat(it);
   case 'diaper':if(!b.dia){bbSay('未屙住，唔使換 😂',1500);return settle(it,nearBB());}return change(it);
   case 'dirty':return refuseItem(it,'咦～好臭！🤢');
@@ -749,15 +904,16 @@ function eat(it){
 function change(it){
  const b=B();R.busy=true;attachToBB(it,0,-20);setFace('wide','o');bbSay(b.dia==='poop'?'換片中… 好臭 🙈':'換片中… 濕晒 💦',1600);
  setTimeout(()=>{
-  const was=b.dia;removeItem(it);b.dia=null;b.needs.clean=Math.max(b.needs.clean,85);R.busy=false;
-  if(was==='poop'){const d=spawnItem({t:'dirty',x:b.x+90,y:b.y});S.items.push(d);settle(d,{x:clamp(b.x+90,60,1540),y:b.loc==='floor'?b.y:720});paSay('臭尿片記得掉落垃圾桶 🗑️',2400);}
+  const was=b.dia,waited=now()-(b.diaT||now());removeItem(it);b.dia=null;
+  if(waited<45000)moJudge(true,pick(['手腳好快！✨','換得好，記得由前向後抹 👍']),'dia');else moJudge(false,'換得慢咗啲，尿片濕耐咗會紅屁屁','slowdia');b.needs.clean=Math.max(b.needs.clean,85);R.busy=false;
+  if(was==='poop'){const d=spawnItem({t:'dirty',x:b.x+90,y:b.y,t0:now()});S.items.push(d);settle(d,{x:clamp(b.x+90,60,1540),y:b.loc==='floor'?b.y:720});paSay('臭尿片記得掉落垃圾桶 🗑️',2400);}
   reward(4,2,b.x,b.y-170);track('diaper');evSolve('poop');setFace('happy','grin');bbSay('爽晒！✨',1500);save();setTimeout(idleFace,1500);
  },1600);
 }
 function spongeBath(it){
  const b=B();R.busy=true;attachToBB(it,30,-110);setFace('closed','grin');SND.splash();burst('🫧',4,b.x,b.y-110);
  setTimeout(()=>{R.busy=false;
-  if(b.stage<2&&b.needs.clean<90){b.needs.clean=100;b.smudge=false;bbSay('海綿抹身，香噴噴 ✨',1800);reward(3,2,b.x,b.y-170);track('sponge');}
+  if(b.stage<2&&b.needs.clean<90){b.needs.clean=100;b.smudge=false;bbSay('海綿抹身，香噴噴 ✨',1800);reward(3,2,b.x,b.y-170);moJudge(true,'抹身由頭抹到腳，臍帶位保持乾爽，好！','sponge');track('sponge');}
   else if(b.smudge){b.smudge=false;reward(1,1,b.x,b.y-170);bbSay('塊面乾淨晒 ✨');}
   else{b.needs.clean=Math.min(100,b.needs.clean+8);bbSay('痕痕地 😆');}
   releaseFromBB(it);idleFace();save();},1400);
@@ -811,7 +967,7 @@ function tapBB(){
  const need=b.loc==='held'?2:3;
  if(b.needBurp>now()){
   fx('👋',b.x+40,b.y-110);SND.pop();evMark('burp');
-  if(R.taps.length>=need){b.needBurp=0;R.taps=[];setFace('wide','o');bbCls('bounce',1300);SND.burp();fx('嗝～！',b.x,b.y-170,'txt');bbSay('嗝！😌',1400);reward(2,1,b.x,b.y-170);track('burp');evSolve('burp');setTimeout(idleFace,1400);}
+  if(R.taps.length>=need){b.needBurp=0;R.taps=[];setFace('wide','o');bbCls('bounce',1300);SND.burp();fx('嗝～！',b.x,b.y-170,'txt');bbSay('嗝！😌',1400);reward(2,1,b.x,b.y-170);moJudge(true,'掃風手勢正！👍','burp');track('burp');evSolve('burp');setTimeout(idleFace,1400);}
   return;
  }
  if(b.stage<4){setFace('wide','o');bbSay(pick(['望住你 👀','（目不轉睛）','啊…']),1200);b.needs.fun=Math.min(100,b.needs.fun+2);setTimeout(idleFace,1300);return;}
@@ -852,10 +1008,10 @@ function renderRoom(){
  stage.classList.toggle('off',!!S.lightsOff);stage.classList.toggle('cOpen',!!S.curtOpen);stage.classList.toggle('night',isNightTime()||evOn());stage.classList.toggle('radioOn',!!S.radio);
  for(const [k,d] of Object.entries(DECO))$(d.el).style.display=S.decoOn[k]?'block':'none';
  $('machTxt').textContent=B().feed==='breast'?'暖奶':'沖奶';
- renderPiggy();renderStroller();
+ renderPiggy();renderStroller();renderMo();
 }
 function renderPiggy(){let b=$('pigB');if(!b){b=document.createElement('div');b.id='pigB';b.className='coinb';stage.appendChild(b);}const n=Math.floor(S.piggy);b.textContent='🪙'+n;b.style.left='316px';b.style.top='268px';b.style.display=n>0?'block':'none';}
-function updateClock(){let h,m;if(evOn()&&EV.key!=='out10'){h=3;m=0;}else{const d=new Date();h=d.getHours();m=d.getMinutes();}const ha=((h%12)+m/60)*30*Math.PI/180,ma=m*6*Math.PI/180;$('hH').setAttribute('x2',1210+Math.sin(ha)*24);$('hH').setAttribute('y2',140-Math.cos(ha)*24);$('hM').setAttribute('x2',1210+Math.sin(ma)*34);$('hM').setAttribute('y2',140-Math.cos(ma)*34);}
+function updateClock(){let h,m;const k=(evOn()&&EV.key!=='out10')+'|'+new Date().getMinutes();if(R.clockK===k)return;R.clockK=k;if(evOn()&&EV.key!=='out10'){h=3;m=0;}else{const d=new Date();h=d.getHours();m=d.getMinutes();}const ha=((h%12)+m/60)*30*Math.PI/180,ma=m*6*Math.PI/180;$('hH').setAttribute('x2',1210+Math.sin(ha)*24);$('hH').setAttribute('y2',140-Math.cos(ha)*24);$('hM').setAttribute('x2',1210+Math.sin(ma)*34);$('hM').setAttribute('y2',140-Math.cos(ma)*34);}
 
 /* =================== 包裹 & 禮物 =================== */
 function spawnParcel(p){const id='pc'+(uid++);const el=document.createElement('div');el.className='ent item';el.id=id;el.innerHTML='<span class="em" style="animation:bob 1.4s ease-in-out infinite">📦</span>';stage.appendChild(el);placeEl(el,p.x,p.y,72,72);E[id]={kind:'parcel',p,el};el.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();au();openParcel(id);});}
@@ -869,10 +1025,12 @@ function claimGift(){if(!giftReady())return;S.daily.gift=true;const n=30+Math.mi
 
 /* =================== 成長 / 任務 / 牌照 =================== */
 function stageGoals(b){return STAGES[b.stage].goals(b.feed);}
+const NEED_FOR={feed:['🍼'],solid:['🍼'],diaper:['💩','💧'],sleep:['😪'],cribSleep:[],bath:['🛁'],sponge:['🛁'],hug:['🧸'],smile:['🧸'],grasp:['🧸'],toy:['🧸'],tummy:['🧸'],burp:['👋']};
 function track(k,n){
  n=n||1;S.cnt[k]=(S.cnt[k]||0)+n;
  const b=B();
- if(b&&b.stage<STAGES.length&&!b.done){if(stageGoals(b).some(g=>g.k===k))b.prog[k]=(b.prog[k]||0)+n;}
+ if(b&&b.stage<STAGES.length&&!b.done){const g=stageGoals(b).find(g=>g.k===k);if(g){const before=b.prog[k]||0;b.prog[k]=before+n;if(before<g.n)careHit(b,k);}}
+ if(b&&TRAIT_OF[k]){b.care=b.care||{};const t=TRAIT_OF[k];b.care[t]=(b.care[t]||0)+1;}
  if(S.daily)for(const t of S.daily.tasks)if(t.k===k&&!t.claimed)t.p=Math.min(t.n,(t.p||0)+n);
  for(const bt of BRAND_TASKS){const s=S.brand[bt.id];if(s&&s.acc&&!s.claimed&&bt.k===k)s.p=Math.min(bt.n,(s.p||0)+n);}
  checkAch();checkStage(b);renderHUD();
@@ -883,10 +1041,53 @@ function checkStage(b){
   S.doneStages[b.stage]=S.doneStages[b.stage]||now();
   const from=STAGES[b.stage];
   if(b.stage>=STAGES.length-1){b.done=true;save();setTimeout(()=>modal(`<div class="big">🎂</div><h2>${b.name}已經 6 個月大！</h2><p>恭喜你完成第一版所有成長階段 🎉<br>7 個月之後嘅故事（學爬、出牙、講第一句說話）會喺下一版推出。</p>`,[{t:'好嘢！'}]),1300);return;}
-  b.stage++;b.prog={};reward(60,10);applyLook(b);save();
-  const to=STAGES[b.stage];
-  setTimeout(()=>{SND.win();modal(`<div class="big">🎉</div><h2>過關！${b.name}${from.age}嘅照顧完成</h2><div class="tl">${STAGES.map((s,i)=>`<span class="${i<b.stage?'done':i===b.stage?'cur':''}">${s.age}</span>`).join('')}</div><p>${b.name}而家 <b>${to.age}</b>：${to.title}</p><div class="note">🌱 新技能：<b>${to.ms}</b><br>${to.note}</div><p>+60 🪙　+10 ❤️</p>${licHint()}`,[{t:'繼續照顧 💪'}]);},1300);
+  const fromIdx=b.stage,mLine=fromIdx<=3?moStageLine(b):'';
+  const care=b.care||{};let tr=null,best=0;for(const k in care)if(care[k]>best){best=care[k];tr=k;}
+  b.stage++;b.prog={};b.care={};if(b.stage>=2&&tr)b.trait=tr;reward(60,10);save();
+  const to=STAGES[b.stage],toIdx=b.stage;
+  if(!R.evolving)applyLook(b,null,fromIdx);
+  setTimeout(()=>{if(B()!==b){applyLook(B());if(fromIdx===3)moFarewell(b);return;}
+   evolve(b,fromIdx,()=>{
+    modal(`<div class="big">🎉</div><h2>${b.name}長大咗！</h2><div style="display:flex;align-items:flex-end;justify-content:center;gap:6px">${miniBB(b.outfit,b.gender,fromIdx,80)}<b style="font-size:28px;padding-bottom:30px">➜</b>${miniBB(b.outfit,b.gender,toIdx,110)}</div><div class="tl">${STAGES.map((s,i)=>`<span class="${i<toIdx?'done':i===toIdx?'cur':''}">${s.age}</span>`).join('')}</div><p>${b.name}而家 <b>${to.age}</b>：${to.title}</p><div class="note">🌱 新技能：<b>${to.ms}</b><br>${to.note}</div>${b.trait&&toIdx>=2?`<div class="note">${TRAITS[b.trait].em} 性格傾向：<b>${TRAITS[b.trait].n}</b>（睇你最常點樣照顧佢）</div>`:''}${mLine}<p>+60 🪙　+10 ❤️</p>${licHint()}`,[{t:'繼續照顧 💪',f:()=>{if(fromIdx===3)setTimeout(()=>moFarewell(b),300);}}]);
+    renderGrow();renderChips();
+   },toIdx);
+  },700);
  }
+}
+function careHit(b,k){
+ const perfect=(NEED_FOR[k]||[]).includes(R.lastNeedIc)&&now()-(R.lastNeedT||0)<60000;
+ R.combo=now()-(R.comboT||0)<25000?(R.combo||0)+1:1;R.comboT=now();
+ const x=b.x,y=b.y-150,c=R.combo;
+ const pitch=[523,587,659,784,880,988,1047,1175][Math.min(7,c-1)];
+ tone(pitch,.12,'triangle',.08);tone(pitch*1.5,.16,'triangle',.06,0,.08);
+ let label='+1 🌱';if(perfect)label='完美照顧！🌟';
+ const d=document.createElement('div');d.className='combo'+(perfect?' perfect':'');d.style.left=x+'px';d.style.top=y+'px';d.style.fontSize=(perfect?34:26+Math.min(c,6)*3)+'px';
+ d.textContent=c>=2?`${label}  Combo ×${c}`:label;stage.appendChild(d);setTimeout(()=>d.remove(),1400);
+ const bonus=(perfect?3:0)+(c>=2?Math.min(c,6):0);if(bonus){S.coins+=bonus;pulse('hCoins');}
+ if(perfect){R.lastNeedIc=null;buzz(25);}
+ flyTo('🌱',x,y,'growBar');
+ setTimeout(renderGrow,300);
+}
+function flyTo(em,x,y,id){if(document.body.classList.contains('lite'))return;const tEl=$(id);if(!tEl)return;const t=tEl.getBoundingClientRect();const sx=x*scale+offX,sy=y*scale+offY;const d=document.createElement('div');d.className='coinfly';d.textContent=em;d.style.left=sx+'px';d.style.top=sy+'px';document.body.appendChild(d);requestAnimationFrame(()=>requestAnimationFrame(()=>{d.style.transform=`translate(${t.left+t.width/2-sx}px,${t.top+8-sy}px) scale(.8)`;d.style.opacity='.5';}));setTimeout(()=>{d.remove();pulse(id);},760);}
+function growPct(b){if(b.done)return 1;const g=stageGoals(b);let a=0,t=0;for(const x of g){a+=Math.min(x.n,b.prog[x.k]||0);t+=x.n;}return t?a/t:0;}
+function renderGrow(){const el=$('growBar');if(!el||!S)return;const b=B(),p=growPct(b),nx=STAGES[b.stage+1];
+ el.innerHTML=`<span style="font-size:20px">🌱</span><span class="gt"><small>${b.done?'第一版完成 🎂':`${STAGES[b.stage].age} → ${nx?nx.age:''}`}</small><span class="gb"><i style="width:${Math.round(p*100)}%"></i></span></span>`;el.classList.toggle('full',p>=1);}
+function evolve(b,fromIdx,done,toIdx){
+ if(R.evolving){(R.evoQ=R.evoQ||[]).push([b,fromIdx,done,toIdx]);return;}
+ R.evolving=true;R.busy=true;const el=bbEl();focusX(b.x);
+ let dim=$('evoDim');if(!dim){dim=document.createElement('div');dim.id='evoDim';stage.appendChild(dim);}
+ dim.style.background=`radial-gradient(circle at ${b.x}px ${b.y-80}px, rgba(255,240,200,.35) 0 90px, rgba(30,20,70,.78) 230px)`;
+ dim.classList.add('on');el.classList.add('evolving');SND.alarm&&0;
+ const to=toIdx;let i=0;const N=9;
+ const step=()=>{
+  if(i>=N){applyLook(b);el.classList.remove('flash');
+   const t=document.createElement('div');t.className='evoTxt';t.textContent=`✨ ${b.name}長大咗！✨`;t.style.left=b.x+'px';t.style.top=(b.y-230)+'px';stage.appendChild(t);
+   SND.win();burst('🎉',5,b.x,b.y-120);burst('⭐',4,b.x,b.y-60);setFace('happy','grin');bbCls('bounce',1300);buzz([30,40,60]);
+   setTimeout(()=>{t.remove();dim.classList.remove('on');el.classList.remove('evolving');R.busy=false;R.evolving=false;done&&done();const q=R.evoQ&&R.evoQ.shift();if(q)setTimeout(()=>evolve(...q),600);},1700);return;}
+  applyLook(b,null,i%2?to:fromIdx);el.classList.toggle('flash',i%2===0);
+  tone(380+i*70,.14,'square',.05);i++;setTimeout(step,Math.max(110,260-i*16));
+ };
+ bbSay('咦？…',900);setTimeout(step,700);
 }
 function licHint(){const L=curLic();if(!L||L.future)return '';const ready=L.stages.every(i=>S.doneStages[i]);return ready?`<p><b>🚗 ${L.name}考牌試已經可以考！</b>㩒上面 🚗 去考牌。</p>`:'';}
 function curLic(){return LICS.find(l=>!l.future&&!S.lic.passed.some(p=>p.id===l.id))||LICS.find(l=>l.future);}
@@ -919,7 +1120,7 @@ function startExam(key){
   for(const t of BAG_ITEMS)if(!S.items.some(i=>i.t===t)){const it=spawnItem({t,x:800,y:700,lv:1});S.items.push(it);}scatter();showBag(true);}
  if(key==='chaos'){placeBB('floor',{x:820,y:730});S.lightsOff=false;b.dia='poop';b.needs.hunger=15;add('poop');add('hungry');add('bin');const d=spawnItem({t:'dirty',x:1000,y:770});S.items.push(d);scatter();}
  if(!S.items.some(i=>i.t==='diaper')){const d=spawnItem({t:'diaper',x:84,y:428});S.items.push(d);}
- SND.alarm();renderRoom();focusX(870);idleFace();
+ SND.alarm();renderRoom();focusX(870,true);idleFace();
  const ex=EXAMS[key];
  modal(`<div class="big">${ex.em}</div><h2>考牌試：${ex.title}</h2><p>${ex.intro}</p><div class="rules"><b>三個挑戰：</b><ol style="margin:4px 0;padding-left:20px"><li>判斷BB可能需要甚麼</li><li>喺混亂房間搵到需要嘅用品</li><li>完成適當照顧，令屋企回復平靜</li></ol></div><p>限時 <b>${ex.time} 秒</b>。失敗可以即刻重考！</p>`,[{t:'開始！💪',f:()=>{EV.started=true;renderEv();}}]);
 }
@@ -954,14 +1155,14 @@ function evSolve(k){
  if(EV.needs.every(x=>x.done)){EV.steps.care=true;EV.over=true;renderEv();setTimeout(passExam,900);}else{renderEv();toast('✅ 做得好！仲有嘢未搞掂…',1800);}
 }
 function passExam(){
- const key=EV.key,L=LICS.find(l=>l.exam===key),ex=EXAMS[key];
+ const key=EV.key,L=LICS.find(l=>l.exam===key),ex=EXAMS[key];EV_HINT=!!EV.hint;if(!EV.hint&&moPresent())moJudge(true,'考試冇問我都搞得掂，有前途！','exam');
  SND.win();const b=B();if(b.loc==='crib'&&S.lightsOff)b.asleep=true;idleFace();
  track(key);
  const first=L&&!S.lic.passed.some(p=>p.id===L.id)&&L.stages.every(i=>S.doneStages[i]);
  if(first){S.lic.passed.push({id:L.id,t:now()});S.coins+=L.coins;}
  cleanupExam();save();
  const lines={night1:`${b.name}飲飽掃完風，終於瞓返… 你都可以瞓返（大概 2 個鐘）😴`,am3:`🎉 恭喜！你成功捱過凌晨三點！<br>獲得「通宵戰士」成就 🌙`,out10:`媽咪袋執好、尿片換埋，準時出門口！酒樓等位都唔使等 🥢`,chaos:`十分鐘內搞掂晒，屋企回復平靜 ✨ 你真係有管理才能！`};
- modal(`<div class="big">🎉</div><h2>考試合格！${ex.title}</h2><p>${lines[key]}</p>${first?certHTML(L,now())+`<p>獎勵：<b>+${L.coins} 🪙</b>・${L.reward}</p>`:'<p>重溫考試完成 👍</p>'}<p class="small">牌照只反映遊戲挑戰進度，唔代表現實育兒能力 😉</p>`,[{t:'好嘢！'}]);
+ modal(`<div class="big">🎉</div><h2>考試合格！${ex.title}</h2><p>${lines[key]}</p>${first?certHTML(L,now())+`<p>獎勵：<b>+${L.coins} 🪙</b>・${L.reward}</p>`:'<p>重溫考試完成 👍</p>'}${EV_HINT?'<p class="small">👵 Mo嫂：今次我幫咗你少少咋 😏</p>':''}<p class="small">牌照只反映遊戲挑戰進度，唔代表現實育兒能力 😉</p>`,[{t:'好嘢！'}]);
  renderHUD();
 }
 function failExam(){
@@ -975,6 +1176,118 @@ function cleanupExam(){
 }
 function certHTML(L,t){const pn=S.parent==='mum'?'媽媽':'爸爸';return `<div class="licard"><div class="lt">BB考牌局・遊戲牌照</div><div class="lc">${L.em} ${L.name}</div><p>持牌人：<b>${S.babies.map(b=>b.name).join('、')}嘅${pn}</b></p><p>發牌日期：${new Date(t).toLocaleDateString('zh-HK')}</p><p>考牌官：${B().name}（簽名：一啖口水）</p><div class="ph">${S.parent==='mum'?'👩':'👨'}</div><div class="stamp">合格</div></div>`;}
 
+/* =================== Mo嫂 =================== */
+const MOX=1385;let moLast=0,EV_HINT=false;
+const MO_GOOD=['唔錯喎！有返咁上下 👍','手勢幾好，可以出師喇 👏','我湊過三百個BB，你算有天分 😌','好！就係咁做 ✅','叻！我第一日都冇你咁快手 😏','呢下得喇，等陣我同你屋企人講你好叻','有我三成功力喇 💪'];
+const MO_LINES={
+ overfeed:['BB唔肚餓就唔好硬餵！睇佢肚餓訊號：咂嘴、咬手指','喂喂喂！佢飽到要吐喇，停手！','你當BB係垃圾桶咩？飽咗就唔好再塞啦 😤','餵奶唔係越多越好，佢會吐奶㗎！'],
+ empty:['空樽餵乜呀？先拖去沖奶機斟奶','樽都冇奶… BB咬住個奶嘴食空氣？😂','奶樽空空如也，你係咪未瞓醒？'],
+ noburp:['飲完奶冇掃風，BB吐奶喇！輕拍佢背脊三下先','你睇！吐到成身都係，下次記得掃風 👋','掃風呀！掃風呀！講咗幾多次 😩'],
+ cord:['臍帶未甩唔好浸水！用海綿抹身','停！臍帶濕咗會發炎，用海綿啦','臍帶仲喺度呀，浸落水即刻俾我捉住 😱'],
+ slowdia:['尿片濕咗咁耐都唔換？紅屁屁就知死','聞唔到咩？我隔幾條街都聞到 🤢','BB屁股好唔舒服呀，快啲換啦'],
+ dirty:['臭尿片唔好留喺地下！掉落垃圾桶','成間屋臭晒喇… 尿片掉咗佢先啦','地下嗰塊嘢，你想留嚟做紀念？🤢'],
+ crylong:['BB喊咗好耐喇，睇吓佢頭上泡泡要乜？','你聽唔到咩？BB喊到啞晒喇！','咁耐都冇人理，BB好傷心呀 😢'],
+ safe:['BB瞓覺，床上唔好放公仔同雜物（安全睡眠）','公仔放喺床會焗住BB㗎，攞走佢！','床上乾乾淨淨先安全，執走啲嘢先'],
+ silly:['你搞乜鬼呀！😱','嘩！你想嚇死我咩 😱','我做咗廿年陪月都未見過咁樣 😵','BB唔係行李嚟㗎！'],
+ feed:['餵得好！記得掃風 👋','BB飲得好舒服，好！','啱啱好份量，好！','就係咁，抱實啲，好！'],
+ burp:['掃風手勢正！👍','嗝得好響，好！','掃完風BB舒服晒 😌'],
+ dia:['手腳好快！✨','換得好，記得由前向後抹 👍','乾爽晒，BB好舒服 😊'],
+ sponge:['抹身由頭抹到腳，臍帶位保持乾爽，好！','抹得好乾淨 ✨'],
+ hug:['多啲抱，BB好有安全感 🥰','抱得好穩陣，好！']};
+function moLine(key,text){const pool=MO_LINES[key];return pool?pick(text?[text,...pool]:pool):text;}
+const MO_IDLE=['我上一個湊嘅BB，而家讀緊大學喇 🎓','以前冇即棄尿片，我哋用布㗎咋，你哋好幸福','手機放低先啦，BB望住你呀 📱','豬腳薑煲咗未？','紅雞蛋準備好未呀？滿月要派㗎 🥚','我做咗廿年陪月，乜嘢BB都見過','你老公/老婆去咗邊？叫佢嚟學埋！','BB笑嗰陣，係咪好值得？😊','聽講隔籬屋請咗兩個陪月… 我一個頂三個！','你瞓夠未呀？BB瞓你就瞓啦 😴','奶樽用完記得消毒呀','BB瞓覺要仰瞓，床上唔好放雜物','頭幾日BB黃黃哋，記得覆診睇黃疸','以前話坐月唔洗得頭，而家醫生話暖水洗完即刻吹乾就得 😂','餵奶前後記得洗手 🧼','尿片濕咗要盡快換，唔係會紅屁屁','臍帶位要保持乾爽','BB喊唔一定係肚餓，睇清楚先','飲多啲湯水，自己都要顧好呀'];
+function moPresent(){return !!(S&&S.babies&&B()&&B().stage<=3&&!B().done);}
+function moX(){return R.moX||MOX;}
+function moRect(){return {x:moX()-85,y:410,w:170,h:385};}
+function moData(b){b=b||B();return b.mo=b.mo||{good:0,bad:0,warn:{}};}
+function moGrade(b){const m=moData(b),t=m.good+m.bad;if(t<3)return '—';const r=m.good/t;return r>=.9?'A+':r>=.8?'A':r>=.7?'B+':r>=.6?'B':r>=.45?'C':'D';}
+function cribItems(){return S.items.filter(i=>!i.held&&!i.inBag&&i.x>=762&&i.x<=980&&Math.abs(i.y-548)<8);}
+function moSVG(){return `<svg viewBox="0 0 170 380" width="170" height="380"><ellipse cx="85" cy="374" rx="56" ry="8" fill="rgba(0,0,0,.14)"/>
+<rect x="58" y="280" width="22" height="88" rx="10" fill="#5b4b6b"/><rect x="90" y="280" width="22" height="88" rx="10" fill="#5b4b6b"/>
+<ellipse cx="66" cy="370" rx="18" ry="8" fill="#2b2d42"/><ellipse cx="104" cy="370" rx="18" ry="8" fill="#2b2d42"/>
+<rect x="36" y="168" width="98" height="128" rx="40" fill="#ff8fab"/>
+<g fill="#ffd6e4"><circle cx="54" cy="196" r="5"/><circle cx="114" cy="206" r="5"/><circle cx="46" cy="250" r="5"/><circle cx="120" cy="262" r="5"/></g>
+<path d="M52 200h66v86q-33 14 -66 0z" fill="#fff"/><rect x="66" y="234" width="38" height="22" rx="6" fill="#ffe3ec"/><text x="85" y="250" text-anchor="middle" font-size="11" font-weight="900" fill="#e8597b">陪月</text>
+<g class="moArmL"><rect x="18" y="182" width="24" height="90" rx="12" fill="#ff8fab"/><circle cx="30" cy="276" r="13" fill="#f2c39c"/></g>
+<g class="moArmR"><rect x="128" y="182" width="24" height="90" rx="12" fill="#ff8fab"/><path class="fan" d="M140 276l-26 -42a42 42 0 0 1 52 0z" fill="#ffd166" stroke="#e0a800" stroke-width="2"/><circle cx="140" cy="276" r="13" fill="#f2c39c"/></g>
+<g class="moThumb"><rect x="128" y="118" width="24" height="72" rx="12" fill="#ff8fab"/><circle cx="140" cy="110" r="14" fill="#f2c39c"/><rect x="135" y="82" width="10" height="24" rx="5" fill="#f2c39c"/></g>
+<rect x="74" y="148" width="22" height="24" fill="#f2c39c"/>
+<g class="moHead"><circle cx="85" cy="104" r="54" fill="#f2c39c"/>
+<path d="M32 104q-2 -64 53 -64q55 0 53 64q-8 -34 -53 -36q-45 2 -53 36z" fill="#3a3238"/><circle cx="85" cy="40" r="24" fill="#3a3238"/><rect x="64" y="30" width="42" height="9" rx="4" fill="#e63946"/>
+<path d="M46 118q-6 4 -8 0M124 118q6 4 8 0" stroke="#d9a07a" stroke-width="3" fill="none"/>
+<circle cx="66" cy="108" r="13" fill="rgba(255,255,255,.35)" stroke="#7c6cf0" stroke-width="3"/><circle cx="104" cy="108" r="13" fill="rgba(255,255,255,.35)" stroke="#7c6cf0" stroke-width="3"/><path d="M79 108h12" stroke="#7c6cf0" stroke-width="3"/>
+<circle cx="66" cy="108" r="4" fill="#2b1d33"/><circle cx="104" cy="108" r="4" fill="#2b1d33"/>
+<path d="M54 88l20 3M116 88l-20 3" stroke="#3a3238" stroke-width="4" stroke-linecap="round"/>
+<circle cx="50" cy="128" r="8" fill="#ff9aa2" opacity=".5"/><circle cx="120" cy="128" r="8" fill="#ff9aa2" opacity=".5"/>
+<path class="moSmile" d="M74 134q11 9 22 0" stroke="#a0405a" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path class="moFrown" d="M74 140q11 -8 22 0" stroke="#a0405a" stroke-width="4" fill="none" stroke-linecap="round"/></g></svg>`;}
+function renderMo(){
+ const on=moPresent();let el=$('mo');
+ if(on&&!el){el=mkEnt('mo','',moSVG(),170,380);const bd=document.createElement('div');bd.id='moBadge';bd.className='moBadge';stage.appendChild(bd);}
+ if(!on){if(el)el.remove();if($('moBadge'))$('moBadge').remove();return;}
+ if(!R.moWalking)placeEl(el,moX(),792,170,380,1791);
+ const bd=$('moBadge');bd.textContent='👵 Mo嫂評分 '+moGrade();bd.style.left=moX()+'px';bd.style.top='452px';bd.style.display=R.moWalking||R.moAway?'none':'';
+}
+function moSay(t,kind,ms){
+ if(!moPresent())return;moLast=now();kind=kind||'tip';
+ sayAt('mo',moX(),400,t,ms||3200);const d=sayMap.mo;if(d)d.classList.add(kind);
+ const el=$('mo');if(!el)return;el.classList.remove('good','bad','tip');void el.offsetWidth;el.classList.add(kind);setTimeout(()=>el.classList.remove(kind),2000);
+}
+function moJudge(good,text,key){
+ if(!moPresent())return;const m=moData();
+ if(good)m.good++;else m.bad++;
+ const line=moLine(key,text)||pick(MO_GOOD);
+ if(!good){SND.bad();if(!moWalkOut(line))moSay(line,'bad',3800);}
+ else if(now()-moLast>3500||Math.random()<.5)moSay(Math.random()<.3?pick(MO_GOOD):line,'good',2400);
+ renderMo();save();
+}
+function tapMo(){
+ au();SND.pop();
+ if(evOn()){const n=EV.needs.find(x=>!x.done);if(n){EV.hint=true;moSay('（細細聲）BB應該係'+ANSWER[n.k]+' 🤫','tip',3800);}return;}
+ const t=tipText();
+ moSay(t&&Math.random()<.65?t.replace(/^[^\u4e00-\u9fa5A-Za-z]+/,''):pick(MO_IDLE),'tip',3800);
+}
+function moWalkOut(line){
+ const el=$('mo');if(!el||R.moAway||evOn()||now()-(R.moWalkT||0)<9000)return false;
+ const b=B();let tx=clamp(b.x+(b.x<MOX?150:-150),140,1460);
+ if(b.loc==='held')tx=clamp(S.pa.x+(S.pa.x<MOX?170:-170),140,1460);
+ if(Math.abs(tx-MOX)<90)return false;
+ R.moAway=true;R.moWalking=true;R.moWalkT=now();
+ sayAt('mo',MOX,400,pick(['等等！','喂喂喂！','唔係咁㗎！','停手！']),900);
+ el.classList.add('moWalk');R.moX=tx;placeEl(el,tx,792,170,380,1850);renderMo();
+ setTimeout(()=>{R.moWalking=false;el.classList.remove('moWalk');moSay(line,'bad',4200);},980);
+ setTimeout(()=>{if(!$('mo'))return;R.moWalking=true;el.classList.add('moWalk');R.moX=MOX;placeEl(el,MOX,792,170,380,1791);
+  setTimeout(()=>{R.moWalking=false;R.moAway=false;el.classList.remove('moWalk');renderMo();if(Math.random()<.4)moSay(pick(['我睇住你㗎 👀','有咩唔識就問我啦','繼續努力！']),'tip',2000);},980);},5400);
+ return true;
+}
+function moStageLine(b){const g=moGrade(b);const c={'A+':'好專業，我都冇嘢教喇 👏','A':'做得好好，繼續保持 👍','B+':'有返咁上下，細節再留意下','B':'合格，不過仲有進步空間','C':'馬馬虎虎… 我會睇實你 🧐','D':'唔得喎！多啲問我啦 😤','—':'未夠資料評分'}[g];return `<div class="note">👵 Mo嫂評語：<b>${g}</b>　${c}</div>`;}
+function moFarewell(b){
+ const g=moGrade(b),m=moData(b),pass=['A+','A','B+','B'].includes(g);
+ const el=$('mo');if(el){el.id='moOut';el.classList.add('walk');placeEl(el,1760,792,170,380,1791);setTimeout(()=>el.remove(),2200);}if($('moBadge'))$('moBadge').remove();
+ if(pass)track('moCert');
+ modal(`<div class="big">👵🎓</div><h2>Mo嫂陪月約滿喇！</h2><p>「${b.name}滿月喇，我都要去下一間屋企開工。」</p><div class="licard"><div class="lt">陪月畢業評語</div><div class="lc">評分：${g}</div><p>做啱 ${m.good} 次・做錯 ${m.bad} 次</p><p>${pass?'「你已經識得湊BB，我好放心 🥹」':'「仲有好多要學，有咩唔識打畀我啦 📞」'}</p>${pass?'<div class="stamp">認證</div>':''}</div>${pass?'<p>獲得成就 👵 <b>Mo嫂認證</b></p>':''}<p class="small">之後就靠你自己喇！再生BB嘅話，Mo嫂會返嚟陪月。</p>`,[{t:'多謝Mo嫂 🙏'}]);
+}
+
+function unstick(why){
+ R.busy=false;R.busyT=0;pushing=false;
+ for(const it of S.items){if(it.busy||it.held){it.busy=false;it.held=false;const e=E[it.id];if(e){e.el.classList.remove('glide','fall');e.el.style.opacity=1;}drawItem(it);}}
+ const el=bbEl();if(el){el.classList.remove('hold','clap','dance','float','roll','bounce','shake');el.querySelector('.hat').innerHTML='';}
+ if(B().loc==='lift')placeBB('floor',{x:820,y:730});
+ idleFace();console.warn('unstick',why);
+}
+addEventListener('error',()=>{try{if(S)unstick('error');}catch(_){}});
+addEventListener('unhandledrejection',()=>{try{if(S)unstick('rej');}catch(_){}});
+/* =================== 效能模式 =================== */
+function liteSetting(){try{return localStorage.getItem('szkp_lite')||'auto';}catch(_){return 'auto';}}
+function applyLite(on){document.body.classList.toggle('lite',!!on);}
+function fpsProbe(){
+ const st=liteSetting();if(st!=='auto'){applyLite(st==='on');return;}
+ const lowSpec=(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4)||(navigator.deviceMemory&&navigator.deviceMemory<=3);
+ if(lowSpec)applyLite(true);
+ let n=0,t0=0,slow=0,last=0;
+ function f(t){if(!t0){t0=last=t;}if(t-last>50)slow++;last=t;n++;if(t-t0<5000)requestAnimationFrame(f);else{const fps=n/((t-t0)/1000);if((fps<40||slow>15)&&!document.body.classList.contains('lite')){applyLite(true);toast('偵測到部機比較慢，已自動開啟效能模式 ⚡',3000);}}}
+ setTimeout(()=>requestAnimationFrame(f),1500);
+}
 /* =================== 時間流逝 =================== */
 let sec=0;
 function tick(){
@@ -987,20 +1300,32 @@ function tick(){
  }
  if(b.asleep&&n.sleep>=100&&!evOn())wake();
  if(R.yawn&&now()>R.yawn){R.yawn=0;if(['crib','stroller'].includes(b.loc)&&!isCryingOther())fallAsleep();}
- if(!b.dia&&!evOn()&&!R.busy&&((R.diaperAt&&now()>R.diaperAt)||Math.random()<1/400)){R.diaperAt=0;b.dia=Math.random()<(b.stage<2?.4:.5)?'poop':'wet';n.clean=Math.min(n.clean,b.dia==='poop'?15:30);SND.pop();if(!b.asleep)bbSay(b.dia==='poop'?'噗噗… 💩':'（尿片濕咗）💧',1600);if(b.dia==='poop')paSay(pick(['又屙…？','原來BB屙屎可以咁大聲 😂','啱啱先換完… 😩']),2000);}
+ if(!b.dia&&!evOn()&&!R.busy&&((R.diaperAt&&now()>R.diaperAt)||Math.random()<1/400)){R.diaperAt=0;b.diaT=now();b.dia=Math.random()<(b.stage<2?.4:.5)?'poop':'wet';n.clean=Math.min(n.clean,b.dia==='poop'?15:30);SND.pop();if(!b.asleep)bbSay(b.dia==='poop'?'噗噗… 💩':'（尿片濕咗）💧',1600);if(b.dia==='poop')paSay(pick(['又屙…？','原來BB屙屎可以咁大聲 😂','啱啱先換完… 😩']),2000);}
  if(evOn()&&EV.key==='out10'&&EV.poopAt&&EV.t<=EV.poopAt&&!b.dia){EV.poopAt=0;b.dia='poop';EV.needs.push({k:'poop',done:false});bbSay('噗噗噗… 💩',1800);paSay('臨出門口必屙定律 😱',2200);renderEv();}
  const L=curLic();
  if(b.asleep&&b.loc==='crib'&&S.lightsOff&&L&&L.id==='P'&&S.doneStages[2]&&S.doneStages[3]&&S.lastNight!==dk()&&!EV){R.sleepSec++;if(R.sleepSec===15){S.lastNight=dk();if(Math.random()<.6)startExam('am3');}}
  if(b.asleep&&sec%3===0)fx('💤',b.x+50,b.y-150);
  const cry=isCrying();
  if(cry&&!R.cryStart)R.cryStart=now();
- if(!cry&&R.cryStart){R.cryStart=0;}
+ if(!cry&&R.cryStart){R.cryStart=0;R.cryWarned=0;}
+ if(cry&&R.cryStart&&now()-R.cryStart>30000&&!R.cryWarned&&!evOn()){R.cryWarned=1;moJudge(false,'BB喊咗好耐喇，睇吓佢頭上泡泡要乜？','crylong');}
+ if(b.needBurp&&now()>b.needBurp&&!b.asleep&&!R.busy){b.needBurp=0;if(b.stage<5){b.smudge=true;n.clean=Math.max(0,n.clean-15);bbSay('嘔～（吐奶）🤢',1800);moJudge(false,'飲完奶冇掃風，BB吐奶喇！下次輕拍佢背脊三下','noburp');}}
+ for(const it of S.items)if(it.t==='dirty'){it.t0=it.t0||now();if(!it.moW&&now()-it.t0>40000&&!evOn()){it.moW=1;moJudge(false,'臭尿片唔好留喺地下，掉落垃圾桶！','dirty');}}
+ if(R.cribCheck&&b.asleep&&b.loc==='crib'&&!cribItems().length){R.cribCheck=0;moJudge(true,'執走晒，安全睡眠 ✅','safefix');}
+ if(!b.asleep)R.cribCheck=0;
+ if(b.asleep&&b.loc==='crib'&&(!S.lightsOff||S.radio)&&!R.lightTip&&moPresent()){R.lightTip=1;moSay('熄燈、熄收音機，BB瞓得好啲 🌙','tip');}
+ if(!b.asleep)R.lightTip=0;
+ if(R.busy){R.busyT=R.busyT||now();if(now()-R.busyT>9000)unstick('busy');}else R.busyT=0;
+ if(EV&&EV.over){R.evT=R.evT||now();if(now()-R.evT>5000){R.evT=0;cleanupExam();}}else R.evT=0;
+ if(mOpen&&$('modal').hidden&&!R.busy){R.mT=R.mT||now();if(now()-R.mT>3000){R.mT=0;mOpen=false;nextModal();}}else R.mT=0;
+ if(moPresent()&&!evOn()&&!R.busy&&!mOpen&&now()-moLast>50000){moSay(pick(MO_IDLE),'tip',3600);}
  if(cry&&!R.busy&&now()-R.lastSob>5000){R.lastSob=now();SND.sob();}
  if(evOn()){EV.t-=1;renderEv();if(EV.t<=0)failExam();}
  if(S.trial&&S.trial.until<=now()){if(b.loc==='stroller')placeBB('floor',{x:S.strollerX-150,y:770});toast(`Happy Wheels 試用完咗，鍾意可以喺商場購買 🛒`);S.trial=null;renderStroller();save();}
  S.piggy=Math.min(60,S.piggy+1/120);if(sec%5===0)renderPiggy();
+ if(!R.busy&&!b.asleep&&!evOn()&&Object.values(n).every(v=>v>=80)&&!b.dia&&now()-(R.allFullT||0)>120000){R.allFullT=now();bbCls('dance',2400);bbSay('超級開心！🌈',1800);burst('💖',4,b.x,b.y-120);reward(5,3,b.x,b.y-170);}
  if(!R.busy&&now()-(R.lastAct||0)>1600)idleFace();
- renderNeed();renderTip();updateClock();
+ renderNeed();renderTip();updateClock();renderMeters();
  if(newDay()){renderGift();renderHUD();toast('☀️ 新一日！每日禮物同任務已更新');}
  S.m.days[dk()]=1;const ss=S.m.sess[S.m.sess.length-1];if(ss)ss.e=now();
  if(sec%5===0){save();renderChips();}
@@ -1009,11 +1334,12 @@ function tick(){
 function idleAnim(){const b=B(),r=Math.random();if(b.stage>=6&&b.loc==='floor'&&r<.3){bbCls('roll',1500);bbSay('（自己翻身）💪',1300);return;}if(r<.5){bbEl().classList.add('wave');setTimeout(()=>bbEl().classList.remove('wave'),2000);bbSay(pick(b.stage>=4?['啊～','咿！','咕咕']:['（伸懶腰）','啊…','（扁嘴）']),1200);}else bbCls('bounce',1200);}
 function renderNeed(){
  const el=bbEl().querySelector('.need'),b=B();
- if(b.asleep||R.busy){el.classList.remove('show');return;}
- if(evOn()){el.textContent='❓';el.classList.add('show');return;}
+ const setN=v=>{if(R.needIc===v)return;R.needIc=v;if(v&&v!=='❓'){R.lastNeedIc=v;R.lastNeedT=now();}el.textContent=v||'';el.classList.toggle('show',!!v);};
+ if(b.asleep||R.busy)return setN(null);
+ if(evOn())return setN('❓');
  let ic=null;const n=b.needs;
  if(b.dia==='poop')ic='💩';else if(b.dia==='wet')ic='💧';else if(n.hunger<35)ic='🍼';else if(n.sleep<30)ic='😪';else if(n.clean<35||b.smudge)ic='🛁';else if(n.fun<35)ic='🧸';else if(b.needBurp>now())ic='👋';
- el.textContent=ic||'';el.classList.toggle('show',!!ic);
+ setN(ic);
 }
 function tipText(){
  if(evOn())return '考牌試進行中：睇上面線索，搵出BB要咩！';
@@ -1035,7 +1361,7 @@ function tipText(){
 function renderTip(){const t=tipText();if($('tipbox').textContent!==t)$('tipbox').textContent=t;}
 
 /* =================== HUD =================== */
-function renderHUD(){
+function renderHUD(){renderGrow();
  $('hCoins').textContent='🪙 '+S.coins;$('hHearts').textContent='❤️ '+S.hearts;
  const L=curLic();
  if(L&&!L.future){const ready=L.stages.every(i=>S.doneStages[i]);$('licT').textContent=L.id+'牌';$('licP').textContent=ready?'可以考！':`階段 ${L.stages.filter(i=>S.doneStages[i]).length}/2`;$('dLic').classList.toggle('show',ready);}
@@ -1043,6 +1369,8 @@ function renderHUD(){
  const d=S.daily;$('dTask').classList.toggle('show',!!(d&&(!d.gift||d.tasks.some(t=>t.p>=t.n&&!t.claimed)||(d.tasks.every(t=>t.claimed)&&!d.bonus))));
  $('dMall').classList.toggle('show',BRAND_TASKS.some(bt=>{const s=S.brand[bt.id];return s&&s.acc&&!s.claimed&&s.p>=bt.n;}));
 }
+function renderMeters(){const m=$('meters');if(!m.dataset.b){m.dataset.b=1;m.innerHTML=[['🍼','hunger'],['💤','sleep'],['🛁','clean'],['😊','fun']].map(([e,k])=>`<span class="mt" title="${k}"><em>${e}</em><i><b id="mt_${k}"></b></i></span>`).join('');}
+ const n=B().needs;for(const k of ['hunger','sleep','clean','fun']){const v=Math.round(n[k]),el=$('mt_'+k);const w=v+'%';if(el.style.width!==w){el.style.width=w;el.style.background=v>60?'#3fbfad':v>30?'#ffd166':'#ff4f7b';}}}
 function renderChips(){
  const c=$('chips');
  const html=S.babies.map((b,i)=>`<button class="chip ${i===S.cur?'on':''}" data-i="${i}"><i style="background:${b.gender==='girl'?'#ffd6e4':'#d6ecff'}">${b.gender==='girl'?'👧':'👦'}</i><span>${b.name}<small>${STAGES[b.stage].age}${i!==S.cur?'・嫲嫲湊緊':''}</small></span></button>`).join('')+(S.babies.length<3?'<button class="chip add" data-add="1">＋</button>':'');
@@ -1053,14 +1381,15 @@ function switchBB(i){
  const prev=B();if(prev.loc==='held')$('pa').classList.remove('holding');if(prev.loc==='lift')prev.loc='floor';
  S.cur=i;const b=B();if(b.loc==='held'||b.loc==='lift')b.loc='floor';if(b.loc==='stroller'&&!strollerActive())b.loc='floor';
  bbEl().classList.remove('poop','cry','hold','dance');applyLook(b);drawBB();if(b.loc==='held')$('pa').classList.add('holding');
- R.taps=[];R.yawn=0;idleFace();renderRoom();renderChips();renderHUD();focusX(b.x);toast(`換咗照顧 ${b.name}（${STAGES[b.stage].age}）`);save();
+ R.taps=[];R.yawn=0;idleFace();renderRoom();renderChips();renderHUD();focusX(b.x,true);toast(`換咗照顧 ${b.name}（${STAGES[b.stage].age}）${moPresent()?'・Mo嫂陪月中 👵':''}`);save();
 }
 
 /* =================== 對話框 =================== */
 const MQ=[];let mOpen=false;
 function modal(html,btns,onShow){MQ.push({html,btns,onShow});if(!mOpen)nextModal();}
 function nextModal(){
- if(R.busy&&MQ.length){mOpen=true;$('modal').hidden=true;setTimeout(()=>{if(!R.busy)nextModal();else{mOpen=false;nextModal();}},400);return;}
+ if(R.busy&&MQ.length&&(!R.mWait||now()-R.mWait<6000)){R.mWait=R.mWait||now();mOpen=true;$('modal').hidden=true;setTimeout(()=>{mOpen=false;nextModal();},400);return;}
+ R.mWait=0;
  const m=MQ.shift();if(!m){mOpen=false;$('modal').hidden=true;endPreview();return;}
  mOpen=true;const c=$('card');c.innerHTML=m.html;
  (m.btns||[]).forEach(b=>{const e=document.createElement('button');e.className='btn '+(b.cls||'');e.textContent=b.t;if(b.dis)e.disabled=true;e.onclick=()=>{au();SND.pop();const r=b.f&&b.f();if(r!==false)nextModal();};c.appendChild(e);});
@@ -1072,7 +1401,7 @@ function reopen(fn){closeModal();setTimeout(fn,30);}
 /* --- 成長 --- */
 function openGrow(){
  const b=B(),st=STAGES[b.stage],goals=stageGoals(b);
- let h=`<div class="big">${b.gender==='girl'?'👧':'👦'}</div><h2>${b.name}・${st.age}</h2><p class="small">${b.gender==='girl'?'BB女':'BB仔'}${b.random?'（出世先揭曉）':''}・${b.feed==='breast'?'🤱 人奶':'🍼 奶粉'}</p>`;
+ let h=`<div class="big">${b.gender==='girl'?'👧':'👦'}</div><h2>${b.name}・${st.age}</h2><p class="small">${b.gender==='girl'?'BB女':'BB仔'}${b.random?'（出世先揭曉）':''}・${b.feed==='breast'?'🤱 人奶':'🍼 奶粉'}</p>${b.stage<=3?`<p class="small">👵 Mo嫂陪月中（到滿月）・評分 <b>${moGrade(b)}</b>（做啱 ${moData(b).good}・做錯 ${moData(b).bad}）</p>`:(b.mo?`<p class="small">👵 Mo嫂陪月評分：<b>${moGrade(b)}</b></p>`:'')}`;
  h+=`<div class="tl">${STAGES.map((s,i)=>`<span class="${i<b.stage||b.done?'done':i===b.stage?'cur':''}">${s.age}</span>`).join('')}</div>`;
  if(b.done)h+=`<p><b>🎂 第一版所有階段完成！</b>下一版會有學爬、出牙等。</p>`;
  else{h+=`<h3>${st.age}：${st.title}</h3><div class="note">🌱 呢個階段：<b>${st.ms}</b><br>${st.note}</div>`;
@@ -1195,13 +1524,14 @@ function openSettings(){
  <table class="stat"><tr><td>第一次玩</td><td>${m.first}</td></tr><tr><td>玩過嘅日數</td><td>${m.days} 日</td></tr><tr><td>第 2 日有冇返嚟（D1）</td><td>${m.d1}</td></tr><tr><td>連續日數</td><td>${m.streak}</td></tr><tr><td>開咗幾多次</td><td>${m.sess} 次</td></tr><tr><td>平均每次玩</td><td>${m.avg} 分鐘</td></tr><tr><td>總共玩咗</td><td>${m.total} 分鐘</td></tr><tr><td>BB</td><td>${m.babies}</td></tr><tr><td>牌照</td><td>${m.lic} 張</td></tr></table>
  <p class="small">數據同商品統計只儲喺呢部機，冇上傳。</p>`,
  [{t:'📋 複製測試數據 (JSON)',cls:'sec',f:()=>{const txt=JSON.stringify({...m,cnt:S.cnt,pstat:S.pstat,brand:S.brand,sessions:S.m.sess},null,1);try{navigator.clipboard.writeText(txt).then(()=>toast('已複製'),()=>toast('複製唔到，請截圖'));}catch(_){toast('複製唔到，請截圖');}return false;}},
+  {t:'⚡ 效能模式：'+({auto:'自動',on:'開',off:'關'}[liteSetting()]),cls:'sec',f:()=>{const nx={auto:'on',on:'off',off:'auto'}[liteSetting()];try{localStorage.setItem('szkp_lite',nx);}catch(_){}applyLite(nx==='on'||(nx==='auto'&&document.body.classList.contains('lite')));if(nx==='off')applyLite(false);toast(nx==='on'?'效能模式已開：減少動畫同陰影':nx==='off'?'效能模式已關':'效能模式：自動偵測');setTimeout(openSettings,50);}},
   {t:S.muted?'🔇 音效：關':'🔊 音效：開',cls:'sec',f:()=>{S.muted=!S.muted;if(S.muted)stopMusic();else if(S.radio)playMusic('radio');save();setTimeout(openSettings,50);}},
-  {t:'🗑️ 重新開始',cls:'sec',f:()=>{setTimeout(()=>modal('<div class="big">🗑️</div><h2>確定清除所有進度？</h2><p>所有BB、牌照同商品都會清除。</p>',[{t:'確定清除',f:()=>{try{localStorage.removeItem(KEY);}catch(_){}location.reload();}},{t:'取消',cls:'sec'}]),50);}},
+  {t:'🗑️ 重新開始',cls:'sec',f:()=>{setTimeout(()=>modal('<div class="big">🗑️</div><h2>確定清除所有進度？</h2><p>所有BB、牌照同商品都會清除。</p>',[{t:'確定清除',f:()=>{S=null;clearTimeout(saveT);try{localStorage.removeItem(KEY);}catch(_){}location.reload();}},{t:'取消',cls:'sec'}]),50);}},
   {t:'返回'}]);
 }
 $('hCoins').onclick=()=>{au();openMall();};$('hHearts').onclick=()=>{au();toast(`❤️ 愛心：${S.hearts}（照顧BB累積嘅感情）`);};
-$('bLic').onclick=()=>{au();if(!evOn())openLicense();};$('bGrow').onclick=()=>{au();openGrow();};$('bTask').onclick=()=>{au();openTasks();};$('bMall').onclick=()=>{au();if(!evOn())openMall();};$('bSet').onclick=()=>{au();openSettings();};
-['hud','evbar','modal'].forEach(id=>$(id).addEventListener('pointerdown',e=>e.stopPropagation()));
+$('growBar').onclick=()=>{au();openGrow();};$('bLic').onclick=()=>{au();if(!evOn())openLicense();};$('bGrow').onclick=()=>{au();openGrow();};$('bTask').onclick=()=>{au();openTasks();};$('bMall').onclick=()=>{au();if(!evOn())openMall();};$('bSet').onclick=()=>{au();openSettings();};
+['hud','evbar','modal','dock','panL','panR'].forEach(id=>$(id).addEventListener('pointerdown',e=>e.stopPropagation()));
 
 /* =================== 新手提示 =================== */
 function showHint(){if(S.seenHint||S.cnt.feed)return;const bt=S.items.find(i=>i.t==='bottle');if(!bt)return;const h=document.createElement('div');h.className='hand';h.textContent='👆';h.id='hand';h.style.left=(bt.x-10)+'px';h.style.top=(bt.y-30)+'px';h.style.setProperty('--hx',(B().x-bt.x)+'px');h.style.setProperty('--hy',(B().y-100-bt.y)+'px');stage.appendChild(h);}
@@ -1229,7 +1559,7 @@ function babyModal(first){
     if(first){S=newSave({...st,name:nm});newDay();S.m.sess.push({s:now(),e:now()});S.m.days[dk()]=1;save();buildWorld();}
     else{S.babies.push(newBaby({...st,name:nm}));checkAch();switchBB(S.babies.length-1);}
     const b=B();
-    setTimeout(()=>modal(`<div class="big">${b.random?'🎁':'🚨'}</div><h2>${b.random?`揭曉！原來係${b.gender==='girl'?'BB女 👧':'BB仔 👦'}！`:'恭喜你！BB出世啦！'}</h2><div style="display:flex;justify-content:center">${miniBB(b.outfit,b.gender)}</div><p>${first?'歡迎參加《生仔要考牌》！<br>你以為湊BB只係餵奶、換片、氹瞓覺？<br><b>真正嘅挑戰，依家先開始！</b>':`${b.name}加入咗屋企！`}</p><div class="note">📈 今日係 <b>${b.name}出世第1日</b>：新生BB大約每 2 至 3 個鐘要食一次奶。完成照顧目標，BB就會慢慢長大（識笑、抓嘢、翻身…）。</div><p class="small">房入面所有嘢都可以拖、可以㩒。</p>`,[{t:`開始照顧${b.name} 💪`,f:()=>{if(first)setTimeout(showHint,400);}}]),100);
+    setTimeout(()=>modal(`<div class="big">${b.random?'🎁':'🚨'}</div><h2>${b.random?`揭曉！原來係${b.gender==='girl'?'BB女 👧':'BB仔 👦'}！`:'恭喜你！BB出世啦！'}</h2><div style="display:flex;justify-content:center">${miniBB(b.outfit,b.gender)}</div><p>${first?'歡迎參加《生仔要考牌》！<br>你以為湊BB只係餵奶、換片、氹瞓覺？<br><b>真正嘅挑戰，依家先開始！</b>':`${b.name}加入咗屋企！`}</p><div class="note">📈 今日係 <b>${b.name}出世第1日</b>：新生BB大約每 2 至 3 個鐘要食一次奶。完成照顧目標，BB就會慢慢長大（識笑、抓嘢、翻身…）。</div><div class="note">👵 <b>Mo嫂</b>會喺隔籬陪月到滿月：做得啱唔啱佢會即刻話你知，唔識就㩒佢問。</div><p class="small">房入面所有嘢都可以拖、可以㩒。</p>`,[{t:`開始照顧${b.name} 💪`,f:()=>{if(first)setTimeout(showHint,400);}}]),100);
    }}],
   c=>{c.querySelectorAll('.opts').forEach(g=>g.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{st[g.dataset.g]=b.dataset.v;g.querySelectorAll('.opt').forEach(x=>x.classList.toggle('on',x===b));SND.pop();}));});
 }
@@ -1246,11 +1576,14 @@ function welcomeBack(){
 load();layout();
 if(S&&S.v===3){S.m.sess.push({s:now(),e:now()});welcomeBack();newDay();buildWorld();}else{S=null;babyModal(true);}
 buildHotspots();
+$('panL').onclick=()=>{au();panBy(innerWidth*.6);};$('panR').onclick=()=>{au();panBy(-innerWidth*.6);};
+renderPanBtns();if(S)renderMeters();fpsProbe();
+setTimeout(()=>{$('splash').classList.add('out');setTimeout(()=>$('splash').remove(),600);},600);
 setInterval(tick,1000);
-(function raf(){autoPan();requestAnimationFrame(raf);})();
-document.addEventListener('visibilitychange',()=>{if(document.hidden){save();stopMusic();}else if(S&&S.radio)playMusic('radio');});
-addEventListener('pagehide',save);
-window.__g={focusX,get S(){return S;},R,get EV(){return EV;},startExam,track,openMall,openProduct,openLicense,openGrow,switchBB,babyModal,tick,E,B};
+(function raf(){if(drag)autoPan();requestAnimationFrame(raf);})();
+document.addEventListener('visibilitychange',()=>{if(document.hidden){saveNow();stopMusic();}else if(S&&S.radio)playMusic('radio');});
+addEventListener('pagehide',saveNow);document.addEventListener('gesturestart',e=>e.preventDefault());
+window.__g={focusX,moJudge,devComplete(){const b=B();const gs=stageGoals(b);gs.forEach((g,i)=>b.prog[g.k]=i?g.n:g.n-1);track(gs[0].k);},stageGoals,get S(){return S;},R,get EV(){return EV;},startExam,track,openMall,openProduct,openLicense,openGrow,switchBB,babyModal,tick,E,B};
 })();
 </script>
 </body>
