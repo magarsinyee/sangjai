@@ -17,8 +17,6 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 #bg{position:absolute;left:0;top:0;display:block}
 #vp,#stage,#bg,.hs{touch-action:none}
 button,.btn,.hb,.dk,.chip,.opt,.shopi,.row,#hud,#dock,#modal{touch-action:manipulation}
-#zoomFix{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:200;border:0;border-radius:22px;background:#ff4f7b;color:#fff;font:900 18px sans-serif;padding:16px 22px;box-shadow:0 6px 0 #d6335d}
-#zoomFix[hidden]{display:none}
 .ent{position:absolute;left:0;top:0;touch-action:none;cursor:grab;will-change:transform;backface-visibility:hidden}
 .ent.lift{filter:drop-shadow(0 22px 12px rgba(0,0,0,.28));z-index:6000!important;cursor:grabbing}
 .ent.fall{transition:transform .42s cubic-bezier(.4,0,.8,.6)}
@@ -144,6 +142,38 @@ svg,img{-webkit-user-drag:none;-webkit-touch-callout:none}
 .lite .item .em,.lite .ent.lift,.lite #bb{filter:none!important}
 .lite .say,.lite .hb,.lite .dk{box-shadow:none!important}
 .lite #night{transition:none}
+.decoEm{position:absolute;transform:translate(-50%,-100%);pointer-events:none;z-index:900;line-height:1;filter:drop-shadow(0 3px 0 rgba(0,0,0,.12))}
+/* 場景 */
+#scene{position:absolute;left:0;top:0;width:1600px;height:800px;transform-origin:0 0;will-change:transform}
+#scene svg.scbg{position:absolute;left:0;top:0}
+.schs{position:absolute;transform:translate(-50%,-100%);line-height:1;cursor:pointer;touch-action:manipulation;user-select:none;filter:drop-shadow(0 4px 0 rgba(0,0,0,.12))}
+.schs.box{transform:none;filter:none;border-radius:20px}
+.schs:active{scale:.94}
+#walker{position:absolute;left:0;top:0;width:360px;height:400px;transition:transform 1s ease-in-out;z-index:50;pointer-events:none}
+#walker.walking .wpa,#walker.walking .wstr{animation:moStep .26s ease-in-out infinite alternate}
+#walker .wpa{position:absolute;left:0;top:0;width:170px;height:400px}
+#walker .wstr{position:absolute;left:130px;top:210px;width:210px;height:190px}
+#walker .wbb{position:absolute}
+.duck{animation:duck 9s ease-in-out infinite alternate}
+@keyframes duck{from{translate:-90px 0}to{translate:90px 0}}
+.shopper{position:absolute;font-size:110px;line-height:1;transform:translate(-50%,-100%);pointer-events:none;animation:shop 26s linear infinite;z-index:20}
+@keyframes shop{from{left:-120px}to{left:1720px}}
+.floaty{position:absolute;font-size:46px;cursor:pointer;transform:translate(-50%,-50%);animation:floaty 2.2s ease-in-out infinite alternate;z-index:60;filter:drop-shadow(0 0 10px #fff)}
+@keyframes floaty{to{translate:0 -24px}}
+#bHome{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 62px);transform:translateX(-50%);z-index:12;border:0;border-radius:999px;background:#ff4f7b;color:#fff;font-weight:900;font-size:16px;padding:10px 18px;box-shadow:0 5px 0 #d6335d}
+.dk .cnt{position:absolute;top:0;right:6px;min-width:18px;height:18px;border-radius:9px;background:#3fbfad;color:#fff;font-size:11px;font-style:normal;line-height:18px;display:none}
+.dk .cnt.show{display:block}.dk .cnt.go{background:#ff4f7b;animation:hpulse 1s infinite}
+/* 小遊戲 */
+#game{position:fixed;inset:0;z-index:45;background:linear-gradient(#2b2163,#5b4b9e);display:flex;flex-direction:column;touch-action:none}
+#game[hidden]{display:none}
+.ghd{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 10px) 14px 8px;color:#fff;font-weight:900}
+.ghd b{font-size:18px}.ghd span{flex:1;text-align:right;font-size:16px}
+#gX{border:0;border-radius:50%;width:38px;height:38px;font-weight:900;background:rgba(255,255,255,.2);color:#fff}
+#gCanvas{flex:1;width:100%;display:block}
+#gMem{flex:1;display:none;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px;align-content:center;max-width:520px;margin:0 auto;width:100%}
+.mc{aspect-ratio:3/4;border:0;border-radius:16px;background:#ff8fb1;font-size:40px;color:transparent;box-shadow:0 5px 0 #d6335d;transition:transform .2s,background .2s}
+.mc.up{background:#fff;color:inherit;transform:rotateY(0)}
+.mc.ok{background:#d8f5e6;box-shadow:0 5px 0 #3fbfad}
 /* BB 成長外觀 */
 #bb .swaddle,#bb .cap,#bb .tooth{display:none}
 #bb.st0 .swaddle,#bb.st1 .swaddle{display:block}
@@ -303,6 +333,7 @@ input.nm:focus{border-color:var(--pink)}
 </head>
 <body>
 <div id="vp">
+ <div id="scene" hidden></div>
  <div id="stage">
   <svg id="bg" width="1600" height="800" viewBox="0 0 1600 800">
    <defs>
@@ -377,12 +408,15 @@ input.nm:focus{border-color:var(--pink)}
  <div class="hb" id="meters"></div>
 </div>
 <nav id="dock">
- <button class="dk" id="bGrow"><span>📈</span>成長<i class="dot" id="dGrow"></i></button>
  <button class="dk" id="bLic"><span>🚗</span><b id="licT">L牌</b><small id="licP">0/3</small><i class="dot" id="dLic"></i></button>
  <button class="dk" id="bTask"><span>📋</span>任務<i class="dot" id="dTask"></i></button>
+ <button class="dk" id="bGame"><span>🎮</span>遊戲<i class="cnt" id="gameCnt"></i></button>
+ <button class="dk" id="bPark"><span>🌳</span>公園</button>
  <button class="dk" id="bMall"><span>🏬</span>商場<i class="dot" id="dMall"></i></button>
  <button class="dk" id="bSet"><span>⚙️</span>設定</button>
 </nav>
+<button id="bHome" hidden>🏠 返屋企</button>
+<div id="game" hidden><div class="ghd"><b id="gTitle"></b><span id="gInfo"></span><button id="gX">✕</button></div><canvas id="gCanvas"></canvas><div id="gMem"></div></div>
 <button class="pan" id="panL" aria-label="向左睇">◀</button><button class="pan" id="panR" aria-label="向右睇">▶</button>
 <div id="splash"><div class="logo">👶🚗</div><b>生仔要考牌</b><small>Parenthood Challenge</small><div class="ld"><i></i></div></div>
 <div id="evbar"></div>
@@ -406,7 +440,26 @@ const stage=$('stage'),vp=$('vp');
 let AC=null;
 function au(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume().catch(()=>{});}
 function tone(f,d,type,v,slide,delay){if((S&&S.muted)||!AC)return;try{const t=AC.currentTime+(delay||0),o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(40,f+slide),t+d);g.gain.setValueAtTime(v||.07,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+let NOISE=null;
+function noiseBuf(){if(NOISE||!AC)return NOISE;const n=AC.sampleRate,b=AC.createBuffer(1,n,n),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;return NOISE=b;}
+function noise(d,f,q,v,delay,type){if((S&&S.muted)||!AC||!noiseBuf())return;try{const t=AC.currentTime+(delay||0),src=AC.createBufferSource(),fl=AC.createBiquadFilter(),g=AC.createGain();src.buffer=NOISE;fl.type=type||'bandpass';fl.frequency.value=f;fl.Q.value=q||1;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v||.05,t+d*.25);g.gain.exponentialRampToValueAtTime(.0001,t+d);src.connect(fl);fl.connect(g);g.connect(AC.destination);src.start(t,Math.random()*.5);src.stop(t+d+.05);}catch(e){}}
+function wah(f0,f1,f2,d,v,delay){if((S&&S.muted)||!AC)return;try{const t=AC.currentTime+(delay||0),o=AC.createOscillator(),o2=AC.createOscillator(),lfo=AC.createOscillator(),lg=AC.createGain(),fl=AC.createBiquadFilter(),g=AC.createGain();
+ o.type='sawtooth';o2.type='triangle';o.frequency.setValueAtTime(f0,t);o.frequency.linearRampToValueAtTime(f1,t+d*.3);o.frequency.linearRampToValueAtTime(f2,t+d);o2.frequency.setValueAtTime(f0*2,t);o2.frequency.linearRampToValueAtTime(f1*2,t+d*.3);o2.frequency.linearRampToValueAtTime(f2*2,t+d);
+ lfo.frequency.value=7.5;lg.gain.value=f1*.035;lfo.connect(lg);lg.connect(o.frequency);lg.connect(o2.frequency);
+ fl.type='bandpass';fl.frequency.setValueAtTime(900,t);fl.frequency.linearRampToValueAtTime(1500,t+d*.3);fl.frequency.linearRampToValueAtTime(800,t+d);fl.Q.value=1.4;
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.06);g.gain.setValueAtTime(v,t+d*.7);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+ o.connect(fl);o2.connect(fl);fl.connect(g);g.connect(AC.destination);[o,o2,lfo].forEach(x=>{x.start(t);x.stop(t+d+.05);});}catch(e){}}
 const SND={
+ cry(){wah(420,620,430,.75,.07);wah(470,660,400,.95,.075,.85);noise(.6,1800,2,.012,.1);},
+ whimper(){wah(500,560,470,.45,.04);},
+ suck(){tone(190,.07,'sine',.07,-70);noise(.05,2500,3,.02);},
+ coo(){tone(560,.18,'sine',.05,260);tone(820,.2,'sine',.045,-180,.18);},
+ snore(){noise(1.1,380,.8,.012,0,'lowpass');},
+ tape(){noise(.22,4200,1.5,.05,0,'highpass');noise(.12,3000,1.5,.04,.25,'highpass');},
+ kiss(){tone(1400,.05,'sine',.05,600);},
+ quack(){tone(520,.12,'sawtooth',.05,-240);tone(480,.12,'sawtooth',.05,-220,.16);},
+ bird(){[0,1,2].forEach(i=>tone(2400+i*200,.06,'sine',.03,600,i*.09));},
+ cash(){tone(1568,.06,'square',.03);tone(2093,.12,'square',.03,0,.07);noise(.15,5000,2,.02,.05);},
  pop(){tone(600,.08,'sine',.08,500);},pick(){tone(420,.06,'triangle',.06,200);},drop(){tone(220,.09,'sine',.08,-80);},
  giggle(){[0,1,2,3].forEach(i=>tone(640+i*80,.07,'triangle',.06,90,i*.08));},burp(){tone(140,.38,'sawtooth',.08,-70);},
  coin(){tone(988,.06,'square',.035);tone(1319,.1,'square',.035,0,.06);},bad(){tone(230,.18,'square',.04,-90);},
@@ -425,7 +478,8 @@ function stopMusic(){clearInterval(musicT);musicT=null;musicKind=null;}
 const IT={
  bottle:{name:'奶樽'},jar:{name:'果蓉'},diaper:{name:'尿片'},dirty:{name:'臭尿片'},sponge:{name:'海綿',em:'🧽'},
  teddy:{name:'熊仔',em:'🧸',toy:1},duck:{name:'鴨仔',em:'🦆',toy:1},ball:{name:'波波',em:'⚽',toy:1},book:{name:'故事書',em:'📕',toy:1},
- rattle:{name:'搖鈴',em:'🔔',toy:1},sock:{name:'襪仔',em:'🧦',toy:1},balloon:{name:'氣球',em:'🎈',toy:1,float:1},dino:{name:'恐龍',em:'🦖',toy:1},piano:{name:'小琴',em:'🎹',toy:1},puppy:{name:'狗仔公仔',em:'🐶',toy:1}};
+ rattle:{name:'搖鈴',em:'🔔',toy:1},sock:{name:'襪仔',em:'🧦',toy:1},balloon:{name:'氣球',em:'🎈',toy:1,float:1},dino:{name:'恐龍',em:'🦖',toy:1},piano:{name:'小琴',em:'🎹',toy:1},puppy:{name:'狗仔公仔',em:'🐶',toy:1},
+ car:{name:'玩具車',em:'🚗',toy:1},blocks:{name:'積木',em:'🧱',toy:1},drum:{name:'小鼓',em:'🥁',toy:1},unicorn:{name:'獨角獸',em:'🦄',toy:1},robot:{name:'機械人',em:'🤖',toy:1},walker:{name:'學行車',em:'🛴',toy:1}};
 const G=(k,n)=>({k,n});
 const GOAL_TEXT={feed:'餵奶',diaper:'換片',burp:'掃風',sleep:'哄BB瞓著',sponge:'用海綿抹身',bath:'用浴盆沖涼',hug:'抱抱BB',smile:'逗BB笑',grasp:'畀玩具BB抓',tummy:'放喺地氈做俯臥練習',solid:'坐BB櫈食果蓉',toy:'同BB玩玩具'};
 const GOAL_HOW={feed:'BB肚餓時，拖奶樽去佢度',diaper:'BB屙尿屙屎後，拖尿片去佢度',burp:'飲完奶，快速輕拍BB三下',sleep:'眼瞓時抱入BB床（熄燈更快）',sponge:'拖海綿去BB身上',bath:'抱BB落浴盆',hug:'拖BB去爸媽身上',smile:'㩒BB逗佢笑',grasp:'拖玩具畀BB',tummy:'將BB放喺地氈中間',solid:'BB坐BB櫈，再拖果蓉畀佢',toy:'拖玩具畀BB'};
@@ -453,16 +507,18 @@ const EXAMS={
 const CLUE={hungry:'BB咂咂嘴、不停咬手指… 🤔',poop:'空氣中有陣怪味飄過嚟… 👃',hug:'BB伸長雙手，望住你喊… 🥺',teddy:'BB四圍摸，好似搵緊嘢攬… 🔍',burp:'飲完奶BB扭嚟扭去，好似唔舒服… 😣',bag:'媽咪袋仲未執好！要放：',bin:'地下塊臭尿片臭到成間屋都聞到 🤢'};
 const ANSWER={hungry:'肚餓（奶樽空咗要先去沖奶機斟奶）',poop:'屙咗要換片',hug:'想要人抱',teddy:'想攬熊仔',burp:'飲完奶要掃風',bag:'執齊出街用品',bin:'臭尿片要掉落垃圾桶'};
 const BAG_ITEMS=['diaper','bottle','sponge','teddy'];
-const BRANDS={ld:{n:'Little Dream',d:'嬰兒床・家居'},hw:{n:'Happy Wheels',d:'嬰兒車'},cb:{n:'Cozy Baby',d:'BB服裝'},pp:{n:'PlayPop',d:'玩具'}};
+const BRANDS={ld:{n:'Little Dream',d:'嬰兒床・家居'},hw:{n:'Happy Wheels',d:'嬰兒車'},cb:{n:'Cozy Baby',d:'BB服裝'},pp:{n:'PlayPop',d:'玩具'},yt:{n:'Yummy Tummy',d:'餵哺用品'}};
 const OUTFITS={
  base_boy:{n:'藍色基本款',c:'#8ecbf5',belly:'star'},base_girl:{n:'粉紅基本款',c:'#ffb3c8',belly:'heart'},
  cb_bunny:{n:'兔仔連身衣',c:'#ffe0ea',hood:'bunny'},cb_dino:{n:'恐龍連身衣',c:'#7dd8a0',hood:'dino'},
- cb_star:{n:'星星睡衣',c:'#5566b8',belly:'stars'},cb_bear:{n:'熊仔冬季套裝',c:'#c99a6b',hood:'bear'},cb_tang:{n:'滿月唐裝',c:'#e63946',belly:'tang'}};
-const STROLLERS={hw_city:{n:'City Lite 輕便車',c:'#3fbfad'},hw_cloud:{n:'Cloud 豪華避震車',c:'#ff8fb1'},hw_twin:{n:'Twin Go 雙人車',c:'#7c6cf0'}};
-const CRIBS={ld_basic:{n:'Little Dream 基本款',c:['#7fc8a9','#a5ddc3']},ld_cloud:{n:'Little Dream 雲朵款',c:['#9ad1f5','#cde8fb']},ld_wood:{n:'Little Dream 原木款',c:['#c98d5e','#e0b58c']},ld_pink:{n:'Little Dream 草莓款',c:['#ff8fb1','#ffc4d6']}};
-const WALLS={cream:{n:'奶油',c:['#ffe3c2','#ffd2a1']},mint:{n:'薄荷',c:['#d9f5e6','#bdebd4']},sky:{n:'天空',c:['#dceeff','#c3e0fb']},lav:{n:'薰衣草',c:['#ece3ff','#dccdfb']}};
-const RUGS={pink:{n:'粉紅',c:['#ff9fb8','#ffc4d3']},lemon:{n:'檸檬',c:['#ffd166','#ffe39a']},sea:{n:'海藍',c:['#7cc8ff','#b5e0ff']}};
-const DECO={art:{n:'掛畫',el:'decArt'},plant:{n:'盆栽',el:'decPlant'},lights:{n:'星星燈串',el:'decLights'}};
+ cb_star:{n:'星星睡衣',c:'#5566b8',belly:'stars'},cb_bear:{n:'熊仔冬季套裝',c:'#c99a6b',hood:'bear'},cb_tang:{n:'滿月唐裝',c:'#e63946',belly:'tang'},
+ cb_panda:{n:'熊貓連身衣',c:'#f4f4f4',hood:'panda'},cb_rain:{n:'黃色雨衣',c:'#ffd23f',hood:'rain'},cb_santa:{n:'聖誕老人裝',c:'#e63946',hood:'santa'},cb_gent:{n:'小紳士禮服',c:'#3b4a6b',belly:'bow'},cb_sailor:{n:'海軍裝',c:'#ffffff',belly:'sailor'}};
+const STROLLERS={hw_city:{n:'City Lite 輕便車',c:'#3fbfad'},hw_cloud:{n:'Cloud 豪華避震車',c:'#ff8fb1'},hw_twin:{n:'Twin Go 雙人車',c:'#7c6cf0'},hw_sport:{n:'Sport 運動款',c:'#ff9f1c'},hw_royal:{n:'Royal 皇家款',c:'#3b2a4a'},hw_rainbow:{n:'Rainbow 彩虹款',c:'#c77dff'}};
+const CRIBS={ld_basic:{n:'Little Dream 基本款',c:['#7fc8a9','#a5ddc3']},ld_cloud:{n:'Little Dream 雲朵款',c:['#9ad1f5','#cde8fb']},ld_wood:{n:'Little Dream 原木款',c:['#c98d5e','#e0b58c']},ld_pink:{n:'Little Dream 草莓款',c:['#ff8fb1','#ffc4d6']},ld_star:{n:'Little Dream 星空款',c:['#5566b8','#8fa0e8']},ld_mint:{n:'Little Dream 湖水款',c:['#2a9d8f','#8fe0d4']}};
+const WALLS={cream:{n:'奶油',c:['#ffe3c2','#ffd2a1']},mint:{n:'薄荷',c:['#d9f5e6','#bdebd4']},sky:{n:'天空',c:['#dceeff','#c3e0fb']},lav:{n:'薰衣草',c:['#ece3ff','#dccdfb']},ocean:{n:'海洋',c:['#cdeffc','#a6dff5']},lemon:{n:'檸檬',c:['#fff4c2','#ffe58a']},star:{n:'星空',c:['#3a3d84','#4c50a6']}};
+const RUGS={pink:{n:'粉紅',c:['#ff9fb8','#ffc4d3']},lemon:{n:'檸檬',c:['#ffd166','#ffe39a']},sea:{n:'海藍',c:['#7cc8ff','#b5e0ff']},grass:{n:'草地',c:['#8ddc8f','#b7ecb8']},grape:{n:'提子',c:['#b69cff','#d9ccff']}};
+const DECO={art:{n:'掛畫',el:'decArt'},plant:{n:'盆栽',el:'decPlant'},lights:{n:'星星燈串',el:'decLights'},books:{n:'圖書架',em:'📚',x:150,y:250,s:44},kite:{n:'風箏掛飾',em:'🪁',x:720,y:190,s:64},carousel:{n:'旋轉木馬擺設',em:'🎠',x:1522,y:488,s:52},bigbear:{n:'巨型熊仔',em:'🧸',x:1250,y:790,s:96},globe:{n:'地球儀',em:'🌍',x:60,y:250,s:40}};
+const SKINS={def:{n:'經典紫',c:'#7c6cf0'},pink:{n:'櫻花粉',c:'#ff8fb1'},mint:{n:'薄荷綠',c:'#3fbfad'},gold:{n:'金色限定',c:'#f5b700'}};
 const PRODUCTS=[
  {id:'hw_city',cat:'stroller',brand:'hw',price:120,desc:'輕巧摺合，單手推都得。推BB散步，BB會開心又容易瞓。'},
  {id:'hw_cloud',cat:'stroller',brand:'hw',price:220,desc:'大輪避震，經過唐樓門檻都唔驚震醒BB。'},
@@ -480,14 +536,35 @@ const PRODUCTS=[
  {id:'deco_art',cat:'home',brand:'ld',price:30,desc:'掛喺牆上嘅太陽山景畫。'},{id:'deco_plant',cat:'home',brand:'ld',price:20,desc:'放喺層架上嘅小盆栽。'},{id:'deco_lights',cat:'home',brand:'ld',price:60,desc:'星空小夜燈串，熄燈都閃閃下。'},
  {id:'rattle',cat:'toy',brand:'pp',price:30,desc:'沙沙聲搖鈴，3 個月識抓嘢之後最啱玩。'},
  {id:'balloon',cat:'toy',brand:'pp',price:40,desc:'會飄上天花板嘅氣球。'},{id:'dino',cat:'toy',brand:'pp',price:50,desc:'識吼嘅恐龍公仔。'},
- {id:'piano',cat:'toy',brand:'pp',price:60,desc:'叮叮咚咚小琴。'},{id:'puppy',cat:'toy',brand:'pp',price:50,desc:'汪汪狗仔公仔。'},{id:'sock',cat:'toy',brand:'pp',price:10,desc:'一隻襪仔。點解要買？唔好問。'}];
-const PNAME=p=>p.cat==='stroller'?STROLLERS[p.id].n:p.cat==='outfit'?OUTFITS[p.id].n:p.cat==='crib'?CRIBS[p.id].n:p.id.startsWith('wall_')?WALLS[p.id.slice(5)].n+'牆紙':p.id.startsWith('rug_')?RUGS[p.id.slice(4)].n+'地氈':p.id.startsWith('deco_')?DECO[p.id.slice(5)].n:IT[p.id].name;
+ {id:'piano',cat:'toy',brand:'pp',price:60,desc:'叮叮咚咚小琴。'},{id:'puppy',cat:'toy',brand:'pp',price:50,desc:'汪汪狗仔公仔。'},{id:'sock',cat:'toy',brand:'pp',price:10,desc:'一隻襪仔。點解要買？唔好問。'},
+ {id:'hw_sport',cat:'stroller',brand:'hw',price:280,req:{st:4},desc:'輕量鋁架，推去公園跑步都得。'},
+ {id:'hw_royal',cat:'stroller',brand:'hw',price:380,req:{lic:'P'},desc:'深紫皇家配色，推出街成個公主王子咁。'},
+ {id:'hw_rainbow',cat:'stroller',brand:'hw',price:420,req:{st:6},desc:'彩虹車篷，公園人人都望住。'},
+ {id:'cb_panda',cat:'outfit',brand:'cb',price:90,req:{st:2},desc:'黑白熊貓帽，國寶級可愛。'},
+ {id:'cb_rain',cat:'outfit',brand:'cb',price:70,req:{st:4},desc:'黃色雨衣，落雨都要去公園踩水氹。'},
+ {id:'cb_gent',cat:'outfit',brand:'cb',price:110,req:{lic:'L'},desc:'煲呔小禮服，飲宴必備。'},
+ {id:'cb_sailor',cat:'outfit',brand:'cb',price:100,req:{st:5},desc:'白色海軍裝，影相一流。'},
+ {id:'cb_santa',cat:'outfit',brand:'cb',price:150,req:{lic:'1'},desc:'聖誕老人裝，ho ho ho！'},
+ {id:'ld_star',cat:'crib',brand:'ld',price:220,req:{st:3},desc:'星空藍床欄，瞓覺好似喺太空。'},
+ {id:'ld_mint',cat:'crib',brand:'ld',price:220,req:{lic:'L'},desc:'湖水綠，清新又護眼。'},
+ {id:'wall_ocean',cat:'home',brand:'ld',price:60,req:{st:2},desc:'海洋藍牆紙。'},{id:'wall_lemon',cat:'home',brand:'ld',price:60,req:{st:4},desc:'檸檬黃牆紙，成間房好光猛。'},{id:'wall_star',cat:'home',brand:'ld',price:120,req:{lic:'P'},desc:'深藍星空牆紙，夜晚超有氣氛。'},
+ {id:'rug_grass',cat:'home',brand:'ld',price:50,req:{st:3},desc:'草地地氈，屋企都有公園感。'},{id:'rug_grape',cat:'home',brand:'ld',price:50,req:{st:5},desc:'提子紫地氈。'},
+ {id:'deco_books',cat:'home',brand:'ld',price:40,req:{st:1},desc:'放滿繪本嘅圖書架。'},{id:'deco_globe',cat:'home',brand:'ld',price:45,req:{st:3},desc:'細細個地球儀。'},{id:'deco_kite',cat:'home',brand:'ld',price:50,req:{st:4},desc:'掛喺牆上嘅彩色風箏。'},
+ {id:'deco_carousel',cat:'home',brand:'ld',price:80,req:{lic:'L'},desc:'會轉嘅旋轉木馬擺設。'},{id:'deco_bigbear',cat:'home',brand:'ld',price:150,req:{lic:'P'},desc:'比BB仲大隻嘅巨型熊仔。'},
+ {id:'car',cat:'toy',brand:'pp',price:45,req:{st:4},desc:'碌嚟碌去嘅玩具車。'},{id:'drum',cat:'toy',brand:'pp',price:55,req:{st:5},desc:'咚咚咚小鼓，鄰居未必咁鍾意 😂'},
+ {id:'blocks',cat:'toy',brand:'pp',price:60,req:{st:5},desc:'彩色軟積木，砌完BB就推冧。'},{id:'unicorn',cat:'toy',brand:'pp',price:90,req:{lic:'P'},desc:'彩虹獨角獸公仔。'},
+ {id:'robot',cat:'toy',brand:'pp',price:110,req:{lic:'1'},desc:'識行識叫嘅機械人。'},{id:'walker',cat:'toy',brand:'pp',price:120,req:{st:7},desc:'學行車，為學行做準備。'},
+ {id:'bt_pink',cat:'bottle',brand:'yt',price:40,desc:'櫻花粉奶樽套。'},{id:'bt_mint',cat:'bottle',brand:'yt',price:40,req:{st:2},desc:'薄荷綠奶樽套。'},{id:'bt_gold',cat:'bottle',brand:'yt',price:200,req:{lic:'P'},desc:'金色限定奶樽套，閃到睇唔到。'}];
+const reqMet=p=>{if(!p.req)return true;if(p.req.st!=null&&Math.max(...S.babies.map(b=>b.stage))<p.req.st)return false;if(p.req.lic&&!S.lic.passed.some(x=>x.id===p.req.lic))return false;return true;};
+const reqText=p=>p.req?(p.req.st!=null?`BB ${STAGES[p.req.st].age}解鎖`:`考到 ${p.req.lic}牌解鎖`):'';
+function newlyUnlocked(fn){const before=new Set(PRODUCTS.filter(reqMet).map(p=>p.id));fn();return PRODUCTS.filter(p=>reqMet(p)&&!before.has(p.id));}
+const PNAME=p=>p.cat==='stroller'?STROLLERS[p.id].n:p.cat==='outfit'?OUTFITS[p.id].n:p.cat==='crib'?CRIBS[p.id].n:p.id.startsWith('wall_')?WALLS[p.id.slice(5)].n+'牆紙':p.id.startsWith('rug_')?RUGS[p.id.slice(4)].n+'地氈':p.id.startsWith('deco_')?DECO[p.id.slice(5)].n:p.cat==='bottle'?SKINS[p.id.slice(3)].n+'奶樽套':IT[p.id].name;
 const BRAND_TASKS=[
  {id:'bt_hw',brand:'hw',t:'試推一圈：將BB放入嬰兒車散步 2 次',k:'stroll',n:2,coins:60,hint:'未有嬰兒車？喺商場揀一架「免費試用 3 分鐘」'},
  {id:'bt_cb',brand:'cb',t:'時裝 Show：幫BB試身 2 套 Cozy Baby 衫',k:'tryOutfit',n:2,coins:50,hint:'喺商場服裝區㩒「試身」'},
  {id:'bt_ld',brand:'ld',t:'好夢挑戰：哄BB喺 Little Dream 嬰兒床瞓著 2 次',k:'cribSleep',n:2,coins:50,hint:'BB眼瞓時抱入BB床'},
  {id:'bt_pp',brand:'pp',t:'玩具體驗日：同BB玩玩具 3 次',k:'toy',n:3,coins:40,hint:'拖任何玩具畀BB'}];
-const DAILY_POOL=[{k:'feed',n:4,t:'餵BB 4 次'},{k:'toy',n:3,t:'同BB玩玩具 3 次'},{k:'diaper',n:3,t:'換片 3 次'},{k:'music',n:1,t:'開收音機同BB跳舞'},{k:'hug',n:2,t:'抱抱BB 2 次'},{k:'bin',n:2,t:'掉 2 次臭尿片'},{k:'sleep',n:1,t:'哄BB瞓覺'},{k:'piggy',n:1,t:'收一次錢罌'},{k:'mallView',n:3,t:'喺商場睇 3 件商品'}];
+const DAILY_POOL=[{k:'game',n:1,t:'BB瞓覺時玩一次小遊戲'},{k:'park',n:1,t:'帶BB去公園散步'},{k:'feed',n:4,t:'餵BB 4 次'},{k:'toy',n:3,t:'同BB玩玩具 3 次'},{k:'diaper',n:3,t:'換片 3 次'},{k:'music',n:1,t:'開收音機同BB跳舞'},{k:'hug',n:2,t:'抱抱BB 2 次'},{k:'bin',n:2,t:'掉 2 次臭尿片'},{k:'sleep',n:1,t:'哄BB瞓覺'},{k:'piggy',n:1,t:'收一次錢罌'},{k:'mallView',n:3,t:'喺商場睇 3 件商品'}];
 const ACH=[{k:'am3',n:1,name:'通宵戰士',em:'🌙'},{k:'out10',n:1,name:'出街專家',em:'👜'},{k:'bin',n:5,name:'臭彈處理專家',em:'💩'},{k:'hug',n:10,name:'抱抱狂魔',em:'🤗'},{k:'feed',n:30,name:'人肉奶樽',em:'🍼'},{k:'days',n:7,name:'一星期唔缺席',em:'📅'},{k:'babies',n:2,name:'多仔多福',em:'👶'},{k:'outfits',n:3,name:'時裝達人',em:'👕'},{k:'moCert',n:1,name:'Mo嫂認證',em:'👵'}];
 const QUIPS=['我已經三日冇瞓過一覺完整…','咖啡… 我需要咖啡 ☕','原來BB屙屎可以咁大聲','考車牌都冇咁難…','BB笑一笑，乜都值得 🥹','頭先邊個話湊BB好輕鬆？','我嘅黑眼圈係勳章 🏅','奶粉錢… 我諗我要多份工 💸','嫲嫲又打嚟問BB食咗未 📞'];
 const GIGGLES=['咯咯咯～','嘻嘻！','啊～咕','噗～（吹口水泡）','哈！'];
@@ -496,7 +573,7 @@ const GIGGLES=['咯咯咯～','嘻嘻！','啊～咕','噗～（吹口水泡）'
 let S=null;
 function newBaby(o){
  const g=o.gender==='none'?(Math.random()<.5?'boy':'girl'):o.gender;
- return {id:'b'+now()+Math.floor(Math.random()*999),name:o.name,gender:g,random:o.gender==='none',feed:o.feed,born:now(),stage:0,prog:{},
+ return {id:'b'+now()+Math.floor(Math.random()*999),name:o.name,gender:g,random:o.gender==='none',feed:'mixed',born:now(),stage:0,prog:{},
   needs:{hunger:55,sleep:60,clean:80,fun:55},x:820,y:730,loc:'floor',asleep:false,dia:null,smudge:false,needBurp:0,outfit:'base_'+g};
 }
 function newSave(o){
@@ -528,7 +605,7 @@ function layout(){
  $('rot').style.display=vh>vw*1.15?'block':'none';
  applyStage();
 }
-function applyStage(){stage.style.transform=`translate3d(${offX}px,${offY}px,0) scale(${scale})`;if($('panL'))renderPanBtns();}
+function applyStage(){stage.style.transform=`translate3d(${offX}px,${offY}px,0) scale(${scale})`;const sc=$('scene');if(sc)sc.style.transform=stage.style.transform;if($('panL'))renderPanBtns();}
 function focusX(x,smooth){const vw=innerWidth;offX=clampX((vw-(R.dockW||0))/2-x*scale);if(smooth){stage.classList.add('cam');clearTimeout(R.camT);R.camT=setTimeout(()=>stage.classList.remove('cam'),500);}else{clearTimeout(R.camT);stage.classList.remove('cam');}applyStage();}
 function panBy(dx){const vw=innerWidth;offX=clampX(offX+dx);stage.classList.add('cam');clearTimeout(R.camT);R.camT=setTimeout(()=>stage.classList.remove('cam'),500);applyStage();}
 function renderPanBtns(){const aw=innerWidth-(R.dockW||0),min=Math.min(0,aw-SW*scale);$('panL').classList.toggle('show',offX<-4&&SW*scale>aw);$('panR').classList.toggle('show',offX>min+4&&SW*scale>aw);}
@@ -536,7 +613,7 @@ function toStage(e){return {x:(e.clientX-offX)/scale,y:(e.clientY-offY)/scale};}
 addEventListener('resize',layout);
 
 /* =================== 圖形 =================== */
-function bottleSVG(lv){const h=Math.round(50*lv);return `<svg width="46" height="80" viewBox="0 0 46 80"><path d="M15 16q0 -14 8 -14q8 0 8 14z" fill="#f4a261"/><rect x="9" y="14" width="28" height="10" rx="4" fill="#7c6cf0"/><rect x="6" y="22" width="34" height="56" rx="12" fill="#d7ecff" stroke="#9ad9f5" stroke-width="3"/><rect x="9" y="${76-h}" width="28" height="${h}" rx="9" fill="#fff"/><path d="M30 34h6M30 46h6M30 58h6" stroke="#7cc8ff" stroke-width="2"/></svg>`;}
+function bottleSVG(lv){const h=Math.round(50*lv);return `<svg width="46" height="80" viewBox="0 0 46 80"><path d="M15 16q0 -14 8 -14q8 0 8 14z" fill="#f4a261"/><rect x="9" y="14" width="28" height="10" rx="4" fill="${(SKINS[S&&S.bskin]||SKINS.def).c}"/><rect x="6" y="22" width="34" height="56" rx="12" fill="#d7ecff" stroke="#9ad9f5" stroke-width="3"/><rect x="9" y="${76-h}" width="28" height="${h}" rx="9" fill="#fff"/><path d="M30 34h6M30 46h6M30 58h6" stroke="#7cc8ff" stroke-width="2"/></svg>`;}
 function jarSVG(full){return `<svg width="56" height="62" viewBox="0 0 56 62"><rect x="6" y="14" width="44" height="46" rx="12" fill="#fff8ee" stroke="#ffd7b0" stroke-width="3"/>${full?'<rect x="9" y="22" width="38" height="35" rx="9" fill="#ffb703"/>':''}<rect x="4" y="4" width="48" height="14" rx="6" fill="#ff8c69"/><rect x="16" y="34" width="24" height="12" rx="4" fill="#fff"/><circle cx="28" cy="40" r="3" fill="#ff8c69"/></svg>`;}
 function diaperSVG(dirty){return `<svg width="76" height="54" viewBox="0 0 76 54"><path d="M4 8h68q-6 40 -34 44q-28 -4 -34 -44z" fill="${dirty?'#e9d9b8':'#fff'}" stroke="${dirty?'#b08b4f':'#cde9f7'}" stroke-width="3"/><rect x="2" y="4" width="14" height="10" rx="4" fill="#7cc8ff"/><rect x="60" y="4" width="14" height="10" rx="4" fill="#7cc8ff"/>${dirty?'<ellipse cx="38" cy="30" rx="12" ry="8" fill="#8a5a2b"/><path d="M24 2q4 -6 0 -12M38 0q4 -6 0 -12M52 2q4 -6 0 -12" stroke="#7dbf4a" stroke-width="3" fill="none"/>':'<circle cx="38" cy="26" r="6" fill="#ffd166"/>'}</svg>`;}
 function strollerSVG(c,part){
@@ -575,12 +652,17 @@ function hairSVG(g,st){
 }
 const BB_SCALE=[.64,.7,.78,.84,.9,.95,1,1.06];
 function hoodSVG(h,c){
+ if(h==='panda')return `<circle cx="34" cy="14" r="16" fill="#2b2d42"/><circle cx="116" cy="14" r="16" fill="#2b2d42"/><circle cx="75" cy="54" r="56" fill="${c}"/>`;
+ if(h==='rain')return `<path d="M15 64q0 -72 60 -72q60 0 60 72q-4 10 -12 8q0 -58 -48 -58q-48 0 -48 58q-8 2 -12 -8z" fill="${c}"/><circle cx="75" cy="54" r="56" fill="${c}" opacity="0"/>`;
+ if(h==='santa')return `<path d="M24 34q30 -66 92 -30q-10 -30 34 -6q-18 6 -24 34z" fill="#e63946"/><circle cx="150" cy="0" r="10" fill="#fff"/><rect x="20" y="24" width="110" height="18" rx="9" fill="#fff"/>`;
  if(h==='bunny')return `<ellipse cx="50" cy="-14" rx="11" ry="34" fill="${c}" transform="rotate(-14 50 -14)"/><ellipse cx="50" cy="-12" rx="5" ry="24" fill="#ffb3c8" transform="rotate(-14 50 -12)"/><ellipse cx="100" cy="-14" rx="11" ry="34" fill="${c}" transform="rotate(14 100 -14)"/><ellipse cx="100" cy="-12" rx="5" ry="24" fill="#ffb3c8" transform="rotate(14 100 -12)"/><circle cx="75" cy="54" r="56" fill="${c}"/>`;
  if(h==='bear')return `<circle cx="34" cy="14" r="17" fill="${c}"/><circle cx="34" cy="14" r="8" fill="#e9c39b"/><circle cx="116" cy="14" r="17" fill="${c}"/><circle cx="116" cy="14" r="8" fill="#e9c39b"/><circle cx="75" cy="54" r="56" fill="${c}"/>`;
  if(h==='dino')return `<path d="M40 14l10 -22l10 18l8 -24l8 22l9 -22l8 24l10 -18l8 22z" fill="#3fa36b"/><circle cx="75" cy="54" r="56" fill="${c}"/>`;
  return '';
 }
 function bellySVG(t){
+ if(t==='bow')return `<rect x="66" y="100" width="18" height="42" fill="#fff"/><path d="M75 104l-14 -8v16zM75 104l14 -8v16z" fill="#e63946"/><circle cx="75" cy="104" r="3.5" fill="#b0213a"/>`;
+ if(t==='sailor')return `<path d="M50 98l25 22l25 -22v12l-25 20l-25 -20z" fill="#3d5a80"/><path d="M70 120l5 10l5 -10z" fill="#e63946"/>`;
  if(t==='star')return `<path d="M75 112l4 9l10 1l-7 7l2 10l-9 -5l-9 5l2 -10l-7 -7l10 -1z" fill="#fff"/>`;
  if(t==='heart')return `<path d="M75 136q-16 -10 -14 -20q2 -8 14 -2q12 -6 14 2q2 10 -14 20z" fill="#fff"/>`;
  if(t==='stars')return `<g fill="#ffd166"><circle cx="50" cy="118" r="3"/><circle cx="96" cy="112" r="3"/><circle cx="72" cy="132" r="3"/><circle cx="106" cy="134" r="2.5"/><circle cx="58" cy="138" r="2.5"/></g>`;
@@ -722,7 +804,7 @@ addEventListener('pointermove',e=>{
  else{const it=drag.ent.it;it.x=x;it.y=y;placeEl(drag.el,x,y,72,72,6000);hoverHint(p);}
 });
 function endDrag(e){
- if(pan&&e.pointerId===pan.pid){pan=null;return;}
+ if(pan&&e.pointerId===pan.pid){const moved=Math.abs(e.clientX-pan.sx);const tgt=e.target;pan=null;if(R.scene&&moved<8&&!(tgt.closest&&tgt.closest('.schs,.floaty')))sceneTap(e);return;}
  if(!drag||e.pointerId!==drag.pid)return;
  const d=drag;drag=null;d.el.classList.remove('lift');clearZoneHints();
  const k=d.ent.kind;
@@ -796,15 +878,15 @@ function dropBB(p){
 }
 function onHeld(){
  const b=B();
- if(S.parent==='mum'&&b.feed==='breast'&&b.needs.hunger<=85&&!R.busy)return breastfeed();
- setFace('happy',b.stage>=4?'grin':'smile');bbCls('bounce',1300);burst('💗',4,S.pa.x,520);SND.giggle();
+ if(S.parent==='mum'&&b.needs.hunger<=80&&!R.busy)return breastfeed();
+ setFace('happy',b.stage>=4?'grin':'smile');bbCls('bounce',1300);burst('💗',4,S.pa.x,520);SND.giggle();SND.kiss();
  b.needs.fun=Math.min(100,b.needs.fun+15);bbSay(pick(['抱抱～','暖笠笠 🥰','聞到爸媽個味好安心']));
  if(cd('hug',8000)){reward(1,2,S.pa.x,420);track('hug');if(Math.random()<.5)moJudge(true,'多啲抱，BB好有安全感 🥰','hug');}
  evSolve('hug');
 }
 function breastfeed(){
  const b=B();R.busy=true;setFace('closed','suck');bbSay('🤱 親餵中…',1800);
- let k=0;const iv=setInterval(()=>{k++;SND.gulp();setFace('closed',k%2?'o':'suck');if(k>=7){clearInterval(iv);done();}},380);
+ let k=0;const iv=setInterval(()=>{k++;SND.suck();setTimeout(SND.suck,180);if(k%3===0)setTimeout(SND.gulp,260);setFace('closed',k%2?'o':'suck');if(k>=7){clearInterval(iv);done();}},380);
  function done(){R.busy=false;afterFeed(b,45);}
 }
 function feedGain(b){return [34,36,40,44,48,50,52,55][b.stage];}
@@ -821,7 +903,7 @@ function onCrib(){
  if(sleepy&&!isCryingOther()){R.yawn=now()+1800;bbSay('呵～ 😪',1500);setFace('closed','o');}
  else bbSay(isCryingOther()?'唔舒服瞓唔著…':'未眼瞓！要玩 🙌',1800);
 }
-function fallAsleep(){const b=B();if(b.asleep||!['crib','stroller'].includes(b.loc))return;b.asleep=true;R.sleepSec=0;idleFace();SND.pop();reward(3,2,b.x,b.y-170);track('sleep');if(b.loc==='crib'){track('cribSleep');pUse(S.crib);if(cribItems().length){moJudge(false,'BB瞓覺，床上唔好放公仔同雜物（安全睡眠）','safe');R.cribCheck=now();}else if(moPresent())moJudge(true,'仰瞓、床上冇雜物，好安全 ✅','safe');}fx('💤',b.x+50,b.y-160);save();}
+function fallAsleep(){const b=B();if(b.asleep||!['crib','stroller'].includes(b.loc))return;b.asleep=true;S.naps=Math.min(3,(S.naps||0)+1);setTimeout(()=>{if(B().asleep)toast('💤 BB瞓著咗！可以玩 🎮 小遊戲賺金幣同禮物',3200);},1500);renderGameBtn();R.sleepSec=0;idleFace();SND.pop();reward(3,2,b.x,b.y-170);track('sleep');if(b.loc==='crib'){track('cribSleep');pUse(S.crib);if(cribItems().length){moJudge(false,'BB瞓覺，床上唔好放公仔同雜物（安全睡眠）','safe');R.cribCheck=now();}else if(moPresent())moJudge(true,'仰瞓、床上冇雜物，好安全 ✅','safe');}fx('💤',b.x+50,b.y-160);save();}
 function wake(byDrag){const b=B();if(!b.asleep)return;b.asleep=false;if(byDrag&&b.needs.sleep<70){bbSay('嗚… 未瞓夠 😫',1600);setFace('cry','wail');}else{bbSay('瞓飽喇！☀️',1500);setFace('happy','grin');bbCls('bounce',1200);}setTimeout(idleFace,1600);}
 function onTub(){
  const b=B();R.busy=true;setFace('happy','grin');bbCls('bounce',1300);SND.splash();burst('🫧',6,b.x,b.y-100);bbSay('沖涼囉～ 💦',1800);
@@ -895,7 +977,7 @@ function useOnBB(it){
 }
 function drink(it){
  const b=B();R.busy=true;attachToBB(it,32,-82);setFace('closed','suck');
- let k=0;const iv=setInterval(()=>{k++;it.lv=Math.max(0,1-k/8);refreshItem(it);SND.gulp();setFace('closed',k%2?'o':'suck');if(k>=8){clearInterval(iv);R.busy=false;releaseFromBB(it);afterFeed(b,feedGain(b));}},300);
+ let k=0;const iv=setInterval(()=>{k++;it.lv=Math.max(0,1-k/8);refreshItem(it);SND.suck();setTimeout(SND.suck,150);if(k%3===0)setTimeout(SND.gulp,220);setFace('closed',k%2?'o':'suck');if(k>=8){clearInterval(iv);R.busy=false;releaseFromBB(it);afterFeed(b,feedGain(b));}},300);
 }
 function eat(it){
  const b=B();R.busy=true;attachToBB(it,40,-60);
@@ -906,7 +988,7 @@ function eat(it){
   releaseFromBB(it);evSolve('hungry');save();setTimeout(idleFace,300);}
 }
 function change(it){
- const b=B();R.busy=true;attachToBB(it,0,-20);setFace('wide','o');bbSay(b.dia==='poop'?'換片中… 好臭 🙈':'換片中… 濕晒 💦',1600);
+ const b=B();R.busy=true;attachToBB(it,0,-20);setFace('wide','o');bbSay(b.dia==='poop'?'換片中… 好臭 🙈':'換片中… 濕晒 💦',1600);SND.tape();
  setTimeout(()=>{
   const was=b.dia,waited=now()-(b.diaT||now());removeItem(it);b.dia=null;
   if(waited<45000)moJudge(true,pick(['手腳好快！✨','換得好，記得由前向後抹 👍']),'dia');else moJudge(false,'換得慢咗啲，尿片濕耐咗會紅屁屁','slowdia');b.needs.clean=Math.max(b.needs.clean,85);R.busy=false;
@@ -943,6 +1025,10 @@ function play(it){
   case 'dino':SND.roar();setFace('wide','o');bbSay('嗷嗚！😱');setTimeout(()=>{setFace('happy','grin');bbSay('…哈哈哈！');SND.giggle();},900);break;
   case 'piano':bbCls('dance',2400);for(let i=0;i<7;i++)tone(pick([523,587,659,698,784,880]),.18,'triangle',.06,0,i*.28);bbSay('叮叮咚咚 🎶');break;
   case 'puppy':SND.woof();setFace('happy','grin');bbSay('汪！🐶');burst('💗',3,b.x,b.y-120);break;
+  case 'drum':for(let i=0;i<6;i++)noise(.12,180,1,.08,i*.3,'lowpass');bbCls('dance',2400);setFace('happy','grin');bbSay('咚咚咚！🥁');break;
+  case 'car':setFace('wide','grin');bbSay('嘟嘟～ 🚗');tone(440,.2,'square',.04);tone(440,.2,'square',.04,0,.3);throwFar=true;break;
+  case 'blocks':setFace('happy','grin');bbSay('砌… 推冧！哈哈 🧱');setTimeout(()=>{noise(.3,600,1,.06);burst('🧱',3,b.x,b.y-60);},1200);break;
+  default:setFace('happy','grin');bbSay(`${IT[t].name}好好玩！`);SND.giggle();burst('✨',3,b.x,b.y-120);
  }
  setTimeout(()=>{
   b.needs.fun=Math.min(100,b.needs.fun+18);R.busy=false;bbEl().classList.remove('hold');bbEl().querySelector('.hat').innerHTML='';E[it.id]&&(E[it.id].el.style.opacity=1);
@@ -974,7 +1060,7 @@ function tapBB(){
   if(R.taps.length>=need){b.needBurp=0;R.taps=[];setFace('wide','o');bbCls('bounce',1300);SND.burp();fx('嗝～！',b.x,b.y-170,'txt');bbSay('嗝！😌',1400);reward(2,1,b.x,b.y-170);moJudge(true,'掃風手勢正！👍','burp');track('burp');evSolve('burp');setTimeout(idleFace,1400);}
   return;
  }
- if(b.stage<4){setFace('wide','o');bbSay(pick(['望住你 👀','（目不轉睛）','啊…']),1200);b.needs.fun=Math.min(100,b.needs.fun+2);setTimeout(idleFace,1300);return;}
+ if(b.stage<4){setFace('wide','o');SND.coo();bbSay(pick(['望住你 👀','（目不轉睛）','啊…']),1200);b.needs.fun=Math.min(100,b.needs.fun+2);setTimeout(idleFace,1300);return;}
  setFace('happy','grin');bbCls('bounce',1300);SND.giggle();bbSay(pick(GIGGLES),1200);
  b.needs.fun=Math.min(100,b.needs.fun+3);
  if(cd('smile',2500)){track('smile');reward(1,1,b.x,b.y-170);}
@@ -986,11 +1072,11 @@ function tapItem(it){
  if(it.t==='duck'){SND.squeak();return;}if(it.t==='dino'){SND.roar();return;}if(it.t==='puppy'){SND.woof();return;}if(it.t==='rattle'){SND.rattle();return;}
  const el=E[it.id].el;el.classList.add('hot');setTimeout(()=>el.classList.remove('hot'),500);SND.pop();
  if(it.t==='dirty')paSay('拖落垃圾桶啦… 好臭 🤢',1500);
- if(it.t==='bottle'&&it.lv<=0)paSay(B().feed==='breast'?'空樽拖去暖奶機加母乳':'空樽拖去沖奶機斟奶',1500);
+ if(it.t==='bottle'&&it.lv<=0)paSay('空樽拖去沖奶機斟奶',1500);
 }
 const HOTSPOTS=[
  {r:{x:36,y:372,w:90,h:58},f(){const c=S.items.filter(i=>i.t==='diaper').length;if(c>=2){paSay('尿片夠用喇',1200);return;}const d=spawnItem({t:'diaper',x:84,y:372});S.items.push(d);settle(d,{x:84+rand(-10,60),y:428});SND.pop();}},
- {r:{x:508,y:352,w:90,h:88},f(){if(!S.items.some(i=>i.t==='bottle')&&!S.box.some(i=>i.t==='bottle')){const b=spawnItem({t:'bottle',x:553,y:440,lv:1});S.items.push(b);SND.fill();save();return;}paSay(B().feed==='breast'?'將奶樽拖落嚟就會加母乳':'將奶樽拖落沖奶機就會斟奶',1800);SND.pop();}},
+ {r:{x:508,y:352,w:90,h:88},f(){if(!S.items.some(i=>i.t==='bottle')&&!S.box.some(i=>i.t==='bottle')){const b=spawnItem({t:'bottle',x:553,y:440,lv:1});S.items.push(b);SND.fill();save();return;}paSay('將奶樽拖落沖奶機就會斟奶',1800);SND.pop();}},
  {r:{x:624,y:390,w:90,h:52},f(){if(B().stage<7){paSay('BB未夠6個月，暫時淨係飲奶就夠 🍼',2000);return;}if(S.items.some(i=>i.t==='jar'&&i.full)){paSay('仲有果蓉未食',1300);return;}const j=spawnItem({t:'jar',x:670,y:440,full:true});S.items.push(j);settle(j,{x:670,y:440});SND.pop();}},
  {r:{x:250,y:494,w:90,h:110},f(){stage.classList.add('binOpen');SND.pop();setTimeout(()=>stage.classList.remove('binOpen'),600);}},
  {r:{x:284,y:104,w:172,h:160},f(){S.curtOpen=!S.curtOpen;renderRoom();SND.pop();if(S.curtOpen&&!isNightTime()){setTimeout(()=>{fx('🐦',300,170,'bird');if(!B().asleep&&!R.busy)setTimeout(()=>{bbSay(B().stage>=4?'雀仔！🐦':'（望住窗外）👀',1300);},600);},500);}save();}},
@@ -1010,8 +1096,8 @@ function renderRoom(){
  root.setProperty('--crib',c[0]);root.setProperty('--crib2',c[1]);
  root.setProperty('--shirt',S.parent==='mum'?'#7c6cf0':'#2a9d8f');
  stage.classList.toggle('off',!!S.lightsOff);stage.classList.toggle('cOpen',!!S.curtOpen);stage.classList.toggle('night',isNightTime()||evOn());stage.classList.toggle('radioOn',!!S.radio);
- for(const [k,d] of Object.entries(DECO))$(d.el).style.display=S.decoOn[k]?'block':'none';
- $('machTxt').textContent=B().feed==='breast'?'暖奶':'沖奶';
+ for(const [k,d] of Object.entries(DECO)){if(d.el){$(d.el).style.display=S.decoOn[k]?'block':'none';continue;}let e=$('deco_'+k);if(!e){e=document.createElement('div');e.id='deco_'+k;e.className='decoEm';e.textContent=d.em;e.style.cssText=`left:${d.x}px;top:${d.y}px;font-size:${d.s}px`;stage.appendChild(e);}e.style.display=S.decoOn[k]?'block':'none';}
+ 
  renderPiggy();renderStroller();renderMo();
 }
 function renderPiggy(){let b=$('pigB');if(!b){b=document.createElement('div');b.id='pigB';b.className='coinb';stage.appendChild(b);}const n=Math.floor(S.piggy);b.textContent='🪙'+n;b.style.left='316px';b.style.top='268px';b.style.display=n>0?'block':'none';}
@@ -1047,12 +1133,12 @@ function checkStage(b){
   if(b.stage>=STAGES.length-1){b.done=true;save();setTimeout(()=>modal(`<div class="big">🎂</div><h2>${b.name}已經 6 個月大！</h2><p>恭喜你完成第一版所有成長階段 🎉<br>7 個月之後嘅故事（學爬、出牙、講第一句說話）會喺下一版推出。</p>`,[{t:'好嘢！'}]),1300);return;}
   const fromIdx=b.stage,mLine=fromIdx<=3?moStageLine(b):'';
   const care=b.care||{};let tr=null,best=0;for(const k in care)if(care[k]>best){best=care[k];tr=k;}
-  b.stage++;b.prog={};b.care={};if(b.stage>=2&&tr)b.trait=tr;reward(60,10);save();
+  const nu=newlyUnlocked(()=>{b.stage++;});b.prog={};b.care={};if(b.stage>=2&&tr)b.trait=tr;reward(60,10);save();
   const to=STAGES[b.stage],toIdx=b.stage;
   if(!R.evolving)applyLook(b,null,fromIdx);
   setTimeout(()=>{if(B()!==b){applyLook(B());if(fromIdx===3)moFarewell(b);return;}
    evolve(b,fromIdx,()=>{
-    modal(`<div class="big">🎉</div><h2>${b.name}長大咗！</h2><div style="display:flex;align-items:flex-end;justify-content:center;gap:6px">${miniBB(b.outfit,b.gender,fromIdx,80)}<b style="font-size:28px;padding-bottom:30px">➜</b>${miniBB(b.outfit,b.gender,toIdx,110)}</div><div class="tl">${STAGES.map((s,i)=>`<span class="${i<toIdx?'done':i===toIdx?'cur':''}">${s.age}</span>`).join('')}</div><p>${b.name}而家 <b>${to.age}</b>：${to.title}</p><div class="note">🌱 新技能：<b>${to.ms}</b><br>${to.note}</div>${b.trait&&toIdx>=2?`<div class="note">${TRAITS[b.trait].em} 性格傾向：<b>${TRAITS[b.trait].n}</b>（睇你最常點樣照顧佢）</div>`:''}${mLine}<p>+60 🪙　+10 ❤️</p>${licHint()}`,[{t:'繼續照顧 💪',f:()=>{if(fromIdx===3)setTimeout(()=>moFarewell(b),300);}}]);
+    modal(`<div class="big">🎉</div><h2>${b.name}長大咗！</h2><div style="display:flex;align-items:flex-end;justify-content:center;gap:6px">${miniBB(b.outfit,b.gender,fromIdx,80)}<b style="font-size:28px;padding-bottom:30px">➜</b>${miniBB(b.outfit,b.gender,toIdx,110)}</div><div class="tl">${STAGES.map((s,i)=>`<span class="${i<toIdx?'done':i===toIdx?'cur':''}">${s.age}</span>`).join('')}</div><p>${b.name}而家 <b>${to.age}</b>：${to.title}</p><div class="note">🌱 新技能：<b>${to.ms}</b><br>${to.note}</div>${b.trait&&toIdx>=2?`<div class="note">${TRAITS[b.trait].em} 性格傾向：<b>${TRAITS[b.trait].n}</b>（睇你最常點樣照顧佢）</div>`:''}${mLine}${nu.length?`<div class="note">🛍️ 商場新貨上架：<b>${nu.map(PNAME).join('、')}</b></div>`:''}<p>+60 🪙　+10 ❤️</p>${licHint()}`,[{t:'繼續照顧 💪',f:()=>{if(fromIdx===3)setTimeout(()=>moFarewell(b),300);}}]);
     renderGrow();renderChips();
    },toIdx);
   },700);
@@ -1103,7 +1189,7 @@ function newDay(){
  const today=dk();if(S.daily&&S.daily.day===today)return false;
  const pool=DAILY_POOL.slice().sort(()=>Math.random()-.5).slice(0,3).map(t=>({...t,p:0,claimed:false}));
  S.daily={day:today,tasks:pool,bonus:false,gift:false};
- S.streak.n=S.streak.last===dk(now()-86400000)?S.streak.n+1:1;S.streak.last=today;return true;
+ S.streak.n=S.streak.last===dk(now()-86400000)?S.streak.n+1:1;S.streak.last=today;S.naps=Math.min(3,(S.naps||0)+1);return true;
 }
 function pStat(id,f){S.pstat[id]=S.pstat[id]||{v:0,t:0,b:0,u:0};S.pstat[id][f]++;}
 function pUse(id){if(PRODUCTS.some(p=>p.id===id))pStat(id,'u');}
@@ -1111,6 +1197,7 @@ function pUse(id){if(PRODUCTS.some(p=>p.id===id))pStat(id,'u');}
 /* =================== 考牌試 =================== */
 let EV=null;
 function startExam(key){
+ if(R.scene){toast('返屋企先考牌喇 🏠');return;}
  if(EV||R.busy)return;closeModal();
  const b=B();if(b.asleep)b.asleep=false;
  EV={key,t:EXAMS[key].time,over:false,started:false,needs:[],steps:{judge:false,find:false,care:false},bag:false};
@@ -1139,7 +1226,7 @@ const NEED_ITEMS={hungry:['bottle','jar'],poop:['diaper'],teddy:['teddy'],bag:BA
 function evMark(what,it){
  if(!evOn())return;const open=EV.needs.filter(n=>!n.done).map(n=>n.k);
  let hit=false;
- for(const k of open){if(k==='hug'&&what==='bb')hit=true;if(k==='hungry'&&what==='bb'&&S.parent==='mum'&&B().feed==='breast')hit=true;if(k==='burp'&&what==='burp')hit=true;if(NEED_ITEMS[k]&&NEED_ITEMS[k].includes(what))hit=true;}
+ for(const k of open){if(k==='hug'&&what==='bb')hit=true;if(k==='hungry'&&what==='bb'&&S.parent==='mum')hit=true;if(k==='burp'&&what==='burp')hit=true;if(NEED_ITEMS[k]&&NEED_ITEMS[k].includes(what))hit=true;}
  if(hit){EV.steps.judge=true;if(what!=='bb'&&what!=='burp')EV.steps.find=true;if(what==='bb'||what==='burp')EV.steps.find=true;renderEv();}
 }
 function renderEv(){
@@ -1163,10 +1250,10 @@ function passExam(){
  SND.win();const b=B();if(b.loc==='crib'&&S.lightsOff)b.asleep=true;idleFace();
  track(key);
  const first=L&&!S.lic.passed.some(p=>p.id===L.id)&&L.stages.every(i=>S.doneStages[i]);
- if(first){S.lic.passed.push({id:L.id,t:now()});S.coins+=L.coins;}
+ let nuL=[];if(first){nuL=newlyUnlocked(()=>{S.lic.passed.push({id:L.id,t:now()});});S.coins+=L.coins;}
  cleanupExam();save();
  const lines={night1:`${b.name}飲飽掃完風，終於瞓返… 你都可以瞓返（大概 2 個鐘）😴`,am3:`🎉 恭喜！你成功捱過凌晨三點！<br>獲得「通宵戰士」成就 🌙`,out10:`媽咪袋執好、尿片換埋，準時出門口！酒樓等位都唔使等 🥢`,chaos:`十分鐘內搞掂晒，屋企回復平靜 ✨ 你真係有管理才能！`};
- modal(`<div class="big">🎉</div><h2>考試合格！${ex.title}</h2><p>${lines[key]}</p>${first?certHTML(L,now())+`<p>獎勵：<b>+${L.coins} 🪙</b>・${L.reward}</p>`:'<p>重溫考試完成 👍</p>'}${EV_HINT?'<p class="small">👵 Mo嫂：今次我幫咗你少少咋 😏</p>':''}<p class="small">牌照只反映遊戲挑戰進度，唔代表現實育兒能力 😉</p>`,[{t:'好嘢！'}]);
+ modal(`<div class="big">🎉</div><h2>考試合格！${ex.title}</h2><p>${lines[key]}</p>${first?certHTML(L,now())+`<p>獎勵：<b>+${L.coins} 🪙</b>・${L.reward}</p>`+(nuL.length?`<div class="note">🛍️ 商場新貨上架：<b>${nuL.map(PNAME).join('、')}</b></div>`:''):'<p>重溫考試完成 👍</p>'}${EV_HINT?'<p class="small">👵 Mo嫂：今次我幫咗你少少咋 😏</p>':''}<p class="small">牌照只反映遊戲挑戰進度，唔代表現實育兒能力 😉</p>`,[{t:'好嘢！'}]);
  renderHUD();
 }
 function failExam(){
@@ -1179,6 +1266,158 @@ function cleanupExam(){
  EV=null;renderRoom();renderEv();
 }
 function certHTML(L,t){const pn=S.parent==='mum'?'媽媽':'爸爸';return `<div class="licard"><div class="lt">BB考牌局・遊戲牌照</div><div class="lc">${L.em} ${L.name}</div><p>持牌人：<b>${S.babies.map(b=>b.name).join('、')}嘅${pn}</b></p><p>發牌日期：${new Date(t).toLocaleDateString('zh-HK')}</p><p>考牌官：${B().name}（簽名：一啖口水）</p><div class="ph">${S.parent==='mum'?'👩':'👨'}</div><div class="stamp">合格</div></div>`;}
+
+/* =================== 場景：公園 / 商場 =================== */
+const PARK_BG=`<svg class="scbg" width="1600" height="800" viewBox="0 0 1600 800"><defs><linearGradient id="pSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd3ff"/><stop offset="1" stop-color="#e3f6ff"/></linearGradient></defs>
+<rect width="1600" height="620" fill="url(#pSky)"/><circle cx="1380" cy="110" r="56" fill="#ffd34d"/><g fill="#fff" opacity=".9"><ellipse cx="260" cy="120" rx="70" ry="28"/><ellipse cx="320" cy="104" rx="52" ry="30"/><ellipse cx="860" cy="80" rx="60" ry="24"/><ellipse cx="910" cy="70" rx="44" ry="26"/></g>
+<path d="M0 480q200 -110 420 -40t460 -30t440 10t280 -20v220H0z" fill="#9ee09a"/><path d="M0 540q300 -70 600 -20t600 -10t400 0v110H0z" fill="#86d483"/>
+<rect y="600" width="1600" height="200" fill="#7fcf7c"/><path d="M0 700q400 -40 800 0t800 0v70q-400 30 -800 0t-800 0z" fill="#f1dcb0"/>
+<g><rect x="96" y="380" width="22" height="200" fill="#8a5a3a"/><circle cx="107" cy="360" r="78" fill="#4caf6a"/><circle cx="70" cy="390" r="50" fill="#5cc17a"/><rect x="1530" y="400" width="20" height="180" fill="#8a5a3a"/><circle cx="1540" cy="380" r="70" fill="#4caf6a"/><rect x="660" y="420" width="18" height="160" fill="#8a5a3a"/><circle cx="669" cy="400" r="60" fill="#5cc17a"/></g>
+<ellipse cx="420" cy="650" rx="200" ry="52" fill="#6cc4ef"/><ellipse cx="420" cy="646" rx="170" ry="38" fill="#8fd6f7"/>
+<g stroke="#e05a47" stroke-width="12" stroke-linecap="round" fill="none"><path d="M880 640l40 -200l40 200M1040 640l-40 -200l-40 200M920 440h80"/></g>
+<g stroke="#3b2a4a" stroke-width="3"><path d="M950 444v120M990 444v120"/></g><rect x="938" y="562" width="64" height="12" rx="6" fill="#ffd166"/>
+<path d="M1150 640l40 -170h40l70 170" fill="none" stroke="#7c6cf0" stroke-width="12" stroke-linecap="round"/><path d="M1190 470h40l-6 30h-28z" fill="#9a6cf0"/><path d="M1230 480q60 40 90 160" fill="none" stroke="#ff8fb1" stroke-width="26" stroke-linecap="round"/>
+<g><circle cx="720" cy="640" r="12" fill="#ff5d8f"/><circle cx="748" cy="634" r="12" fill="#ffd166"/><circle cx="776" cy="642" r="12" fill="#ff8fb1"/><circle cx="1380" cy="640" r="12" fill="#ffd166"/><circle cx="1408" cy="634" r="12" fill="#ff5d8f"/><circle cx="1436" cy="642" r="12" fill="#b48cff"/></g>
+<rect x="1440" y="600" width="140" height="16" rx="6" fill="#a46b3c"/><rect x="1440" y="572" width="140" height="12" rx="6" fill="#a46b3c"/><path d="M1452 616v24M1568 616v24" stroke="#6b4226" stroke-width="8"/>
+<text x="800" y="560" text-anchor="middle" font-size="24" font-weight="900" fill="#2f7a3e" opacity=".55">🌳 BB公園</text></svg>`;
+const MALL_SHOPS=[{x:170,b:'ld',cat:'home',c:'#7fc8a9',w:['🛏️','🪴','🖼️']},{x:470,b:'hw',cat:'stroller',c:'#3fbfad',w:['🚼','🛞']},{x:770,b:'cb',cat:'outfit',c:'#ff8fb1',w:['👕','🧢','🧦']},{x:1070,b:'pp',cat:'toy',c:'#ffb347',w:['🧸','🦖','🎈']},{x:1370,b:'yt',cat:'bottle',c:'#b48cff',w:['🍼','🥣']}];
+function mallBG(){return `<svg class="scbg" width="1600" height="800" viewBox="0 0 1600 800"><rect width="1600" height="560" fill="#fff4ec"/><rect y="0" width="1600" height="60" fill="#ffe0cc"/><g fill="#fffbe0">${[200,500,800,1100,1400].map(x=>`<ellipse cx="${x}" cy="40" rx="60" ry="10"/>`).join('')}</g>
+<rect y="560" width="1600" height="240" fill="#f3e7dd"/><g stroke="#e8d8ca" stroke-width="3">${Array.from({length:17},(_,i)=>`<path d="M${i*100} 560v240"/>`).join('')}<path d="M0 640h1600M0 720h1600"/></g>
+${MALL_SHOPS.map(s=>`<g><rect x="${s.x-135}" y="130" width="270" height="430" rx="10" fill="#fff"/><rect x="${s.x-135}" y="130" width="270" height="70" rx="10" fill="${s.c}"/><path d="M${s.x-135} 200${Array.from({length:9},(_,i)=>`q15 26 30 0`).join('')}" fill="${s.c}"/><text x="${s.x}" y="176" text-anchor="middle" font-size="26" font-weight="900" fill="#fff">${BRANDS[s.b].n}</text><rect x="${s.x-110}" y="250" width="220" height="190" rx="12" fill="#e9f6ff" stroke="${s.c}" stroke-width="6"/><text x="${s.x}" y="370" text-anchor="middle" font-size="70">${s.w.join('')}</text><rect x="${s.x-40}" y="450" width="80" height="110" rx="8" fill="${s.c}" opacity=".35"/><text x="${s.x}" y="236" text-anchor="middle" font-size="17" font-weight="900" fill="${s.c}">${BRANDS[s.b].d}</text></g>`).join('')}
+<ellipse cx="800" cy="650" rx="120" ry="30" fill="#9ad9f5"/><ellipse cx="800" cy="644" rx="96" ry="20" fill="#c9ecff"/><rect x="790" y="590" width="20" height="56" rx="8" fill="#e0e0e0"/><path d="M800 590q-30 -40 -60 10M800 590q30 -40 60 10M800 590v-40" stroke="#7cc8ff" stroke-width="5" fill="none"/>
+<text x="800" y="104" text-anchor="middle" font-size="30" font-weight="900" fill="#c06a3a">🏬 BB Mall 育兒用品商場</text></svg>`;}
+const GRANNY=['嘩BB好得意呀！幾大喇？','著少咗件衫呀！凍親點算！','我個孫都係咁大，日日喊 😂','BB好似你呀，眼仔特別似！','要多啲曬太陽呀，鈣質好','湊BB辛苦㗎，你都要食多啲','BB笑得咁甜，將來實係開心果'];
+function goScene(k){
+ if(k===(R.scene||'home'))return;
+ if(evOn()){toast('考緊牌，唔出得街 😅');return;}
+ if(R.busy){toast('等陣先，BB忙緊');return;}
+ closeModal();clearInterval(R.scT);
+ const sc=$('scene'),b=B();
+ if(k==='home'){
+  R.scene=null;sc.hidden=true;sc.innerHTML='';stage.style.visibility='';$('bHome').hidden=true;
+  if(strollerActive()){placeBB('stroller');}else placeBB('held');
+  if(R.pendingParcel){R.pendingParcel=false;for(const pc of S.parcels)if(!Object.values(E).some(e=>e.p===pc))spawnParcel(pc);}
+  renderRoom();idleFace();focusX(B().x);toast('🏠 返到屋企');save();return;
+ }
+ if(!R.scene&&moPresent())setTimeout(()=>toast('👵 Mo嫂：坐月唔好去太耐呀，早啲返嚟！',2800),600);
+ if(b.asleep&&k==='mall')b.asleep=false;
+ R.scene=k;R.walkX=320;R.walkAcc=0;sc.hidden=false;stage.style.visibility='hidden';$('bHome').hidden=false;
+ sc.innerHTML=(k==='park'?PARK_BG:mallBG())+`<div id="walker"><div class="wpa"></div><div class="wstr"></div><div class="wbb"></div></div>`;
+ if(k==='park'){
+  [[300,660,52],[420,640,46],[540,664,50]].forEach(([x,y,f],i)=>addHs('🦆',x,y,f,()=>parkDuck(i),'duck'));
+  addHs('🫧',960,560,0,parkSwing,'',{box:[900,430,120,150]});
+  addHs('',1230,560,0,()=>{bbSayScene(B().stage>=7?'再玩多次！滑呀～':'大個啲先玩滑梯 😂');SND.giggle();},'',{box:[1150,470,170,170]});
+  addHs('🌸',748,628,40,()=>parkFlower(748));addHs('🌼',1408,628,40,()=>parkFlower(1408));
+  addHs('👵',1510,600,80,parkGranny);
+  R.scT=setInterval(spawnFloaty,6500);track('park');
+ }else{
+  for(const s of MALL_SHOPS)addHs('',s.x,560,0,()=>{SND.cash();toast(`歡迎光臨 ${BRANDS[s.b].n}！`,1400);setTimeout(()=>openMall(s.cat),250);},'',{box:[s.x-135,130,270,430]});
+  addHs('',800,670,0,mallWish,'',{box:[680,580,240,100]});
+  addHs('💁‍♀️',1540,620,70,()=>openMall('brand'));
+  ['🚶‍♀️','👩‍🍼','🚶'].forEach((e,i)=>{const d=document.createElement('div');d.className='shopper';d.textContent=e;d.style.top='780px';d.style.animationDelay=(-i*9)+'s';d.style.animationDuration=(22+i*5)+'s';sc.appendChild(d);});
+ }
+ renderWalker();focusX(R.walkX+150);
+}
+function addHs(em,x,y,fs,fn,cls,o){const d=document.createElement('div');d.className='schs '+(cls||'')+(o&&o.box?' box':'');if(o&&o.box){const[bx,by,bw,bh]=o.box;d.style.cssText=`left:${bx}px;top:${by}px;width:${bw}px;height:${bh}px`;}else{d.textContent=em;d.style.cssText=`left:${x}px;top:${y}px;font-size:${fs}px`;}d.addEventListener('pointerdown',e=>e.stopPropagation());d.addEventListener('click',e=>{e.stopPropagation();au();fn(e);});$('scene').appendChild(d);return d;}
+function renderWalker(){
+ const w=$('walker');if(!w)return;const b=B(),st=strollerActive(),oid=(R.preview&&R.preview.kind==='outfit')?R.preview.id:b.outfit;
+ w.querySelector('.wpa').innerHTML=paSVG(S.parent==='mum');w.querySelector('.wpa svg').classList.toggle('h',!st);
+ const pa=w.querySelector('.wpa');pa.className='wpa'+(st?'':' holding');
+ pa.querySelector('.holdArms').style.display=st?'none':'block';pa.querySelector('.downArms').style.display=st?'block':'none';
+ w.querySelector('.wstr').innerHTML=st?strollerSVG(STROLLERS[strollerId()].c):'';
+ const bb=w.querySelector('.wbb');bb.innerHTML=miniBB(oid,b.gender,b.stage,st?110:96);
+ if(st){bb.style.left='176px';bb.style.top='196px';}else{bb.style.left='58px';bb.style.top='150px';}
+ bb.style.zIndex=st?'1':'3';w.querySelector('.wstr').style.zIndex='2';
+ if(st){const f=w.querySelector('.wstr svg');}
+ w.style.transform=`translate3d(${R.walkX-85}px,400px,0)`;
+}
+function sceneTap(e){const p=toStage(e);walkTo(p.x);}
+function walkTo(x){
+ const w=$('walker');if(!w)return;x=clamp(x,100,1300);const d=Math.abs(x-R.walkX);if(d<20)return;
+ const t=Math.max(.4,d/300);w.style.transition=`transform ${t}s ease-in-out`;w.classList.add('walking');
+ R.walkX=x;w.style.transform=`translate3d(${x-85}px,400px,0)`;focusX(x+150,true);
+ clearTimeout(R.walkT);R.walkT=setTimeout(()=>{w.classList.remove('walking');onWalked(d);},t*1000);
+}
+function onWalked(d){
+ const b=B();R.walkAcc+=d;b.needs.fun=Math.min(100,b.needs.fun+d/40);
+ if(R.walkAcc>=700){R.walkAcc-=700;if(strollerActive()){track('stroll');pUse(strollerId());}reward(3,1,R.walkX+150,380);
+  if(R.scene==='park'&&b.needs.sleep<45&&!b.asleep&&strollerActive()){b.asleep=true;S.naps=Math.min(3,(S.naps||0)+1);renderGameBtn();toast('💤 BB喺車仔度瞓著咗～ 可以玩 🎮 小遊戲',3000);}
+  else bbSayScene(pick(['好舒服呀～','（四圍望）👀','啊～咕','嘻嘻']));}
+ sceneNeedsCheck();
+}
+function bbSayScene(t,ms){if(!R.scene)return;sayAt('scbb',R.walkX+(strollerActive()?150:40),380,t,ms||1800);const d=sayMap.scbb;if(d&&d.parentNode!==$('scene'))$('scene').appendChild(d);}
+function sceneNeedsCheck(){const b=B();if(now()-(R.scWarn||0)<25000)return;let m=null;if(b.dia)m='BB屙咗，返屋企換片啦 💩';else if(b.needs.hunger<25)m='BB肚餓喇，返屋企餵奶 🍼';else if(b.needs.sleep<15&&!strollerActive())m='BB好眼瞓，返屋企瞓覺啦 😪';if(m){R.scWarn=now();toast(m,3000);}}
+function parkDuck(i){if(!cd('duck'+i,2500)){SND.quack();return;}SND.quack();const b=B();setTimeout(()=>{bbSayScene(b.stage>=4?'鴨仔！哈哈 🦆':'（望住鴨仔）👀');if(b.stage>=4)SND.giggle();},300);b.needs.fun=Math.min(100,b.needs.fun+6);reward(1,1,[300,420,540][i],560);}
+function parkSwing(){const b=B();if(b.stage<4){bbSayScene('BB仲細，6星期後先玩鞦韆 🙂');return;}if(!cd('swing',15000)){bbSayScene('啱啱先玩完，休息吓先');return;}
+ const d=document.createElement('div');d.className='schs';d.style.cssText='left:970px;top:560px;font-size:0';d.innerHTML=miniBB(b.outfit,b.gender,b.stage,80);d.style.animation='dance .5s ease-in-out 8 alternate';$('scene').appendChild(d);
+ SND.giggle();setTimeout(SND.giggle,900);bbSayScene('飛呀～～ 🎡',2600);setTimeout(()=>{d.remove();b.needs.fun=Math.min(100,b.needs.fun+25);reward(4,2,960,420);},4000);}
+function parkFlower(x){SND.bird();for(let i=0;i<4;i++)fx('🌸',x+rand(-40,40),560,'',i*120);const b=B();b.needs.fun=Math.min(100,b.needs.fun+4);bbSayScene('（聞到花香）😊');if(cd('flower'+x,8000))reward(1,0,x,540);}
+function parkGranny(){SND.pop();sayAt('granny',1510,500,pick(GRANNY),2600);const d=sayMap.granny;if(d)$('scene').appendChild(d);if(!R.grannyGift){R.grannyGift=1;setTimeout(()=>{reward(10,2,1510,480);toast('👵 婆婆：畀BB買糖食（+10 🪙）',2400);},1400);}}
+function spawnFloaty(){if(!R.scene||document.hidden)return;const sc=$('scene');if(sc.querySelectorAll('.floaty').length>=2)return;const e=pick(['🦋','🍃','⭐','🦋','🎈']);const d=document.createElement('div');d.className='floaty';d.textContent=e;d.style.left=clamp(R.walkX+rand(-200,500),80,1520)+'px';d.style.top=rand(260,520)+'px';d.addEventListener('pointerdown',ev=>ev.stopPropagation());d.addEventListener('click',ev=>{ev.stopPropagation();au();d.remove();SND.coin();reward(e==='⭐'?4:2,0,parseFloat(d.style.left),parseFloat(d.style.top));});sc.appendChild(d);setTimeout(()=>d.remove(),9000);}
+function mallWish(){if(S.coins<1){toast('冇硬幣許願 😅');return;}S.coins-=1;SND.splash();fx('🪙',800,600,'');setTimeout(()=>{const r=Math.random();if(r<.2){reward(6,1,800,560);toast('✨ 願望成真！+6 🪙');}else{S.hearts+=1;pulse('hHearts');toast(pick(['✨ 許咗願：BB快高長大','✨ 許咗願：今晚BB一覺瞓天光','✨ 許咗願：尿片唔使換咁密']));}renderHUD();},600);}
+
+/* =================== 小遊戲 =================== */
+function renderGameBtn(){const c=$('gameCnt');if(!c||!S)return;const n=S.naps||0;c.textContent=n;c.classList.toggle('show',n>0);c.classList.toggle('go',n>0&&B().asleep);}
+function openGames(){
+ const n=S.naps||0,b=B();
+ if(!b.asleep){modal(`<div class="big">🎮</div><h2>BB瞓覺時先玩到</h2><p>BB醒住，佢需要你照顧！<br>每次BB瞓著，就會多 1 次小遊戲機會。</p><p>而家有 <b>${n}</b> 次機會（最多 3 次）</p><p class="small">玩遊戲期間時間會暫停，BB唔會肚餓 😉</p>`,[{t:'明白'}]);return;}
+ if(n<1){modal(`<div class="big">🎮</div><h2>暫時冇遊戲機會</h2><p>下次BB瞓著就會有 🎮 機會，每日第一次返嚟都會送 1 次。</p>`,[{t:'明白'}]);return;}
+ modal(`<div class="big">🎮</div><h2>BB瞓緊，玩陣小遊戲！</h2><p class="small">機會：${n} 次・玩遊戲期間時間暫停</p>
+ <div class="row"><div class="re">🧺</div><div>接BB用品<small>30 秒，接奶樽、公仔、星星，避開💩</small></div><button data-g="catch">玩</button></div>
+ <div class="row"><div class="re">🃏</div><div>配對記憶<small>45 秒，搵出 6 對一樣嘅BB用品</small></div><button data-g="mem">玩</button></div>
+ <p class="small">高分有機會拎到 🎁 禮物（玩具、衫或者奶樽套）</p>`,[{t:'遲啲先玩',cls:'sec'}],c=>{c.querySelectorAll('[data-g]').forEach(x=>x.onclick=()=>{closeModal();startGame(x.dataset.g);});});
+}
+const GM={};
+function startGame(kind){
+ S.naps=Math.max(0,(S.naps||0)-1);renderGameBtn();save();
+ R.gamePause=true;stopMusic();const g=$('game');g.hidden=false;Object.assign(GM,{kind,score:0,t:kind==='catch'?30:45,over:false,last:performance.now(),items:[],spawn:0,bx:.5,pairs:0,open:[],lock:false});
+ $('gTitle').textContent=kind==='catch'?'🧺 接BB用品':'🃏 配對記憶';
+ const cv=$('gCanvas'),mem=$('gMem');
+ if(kind==='catch'){cv.style.display='block';mem.style.display='none';fitCanvas();cv.onpointerdown=cv.onpointermove=e=>{const r=cv.getBoundingClientRect();GM.bx=clamp((e.clientX-r.left)/r.width,.06,.94);};requestAnimationFrame(catchLoop);}
+ else{cv.style.display='none';mem.style.display='grid';const em=['🍼','🧸','🦆','🧦','🎈','👶'];const deck=[...em,...em].sort(()=>Math.random()-.5);mem.innerHTML=deck.map((e,i)=>`<button class="mc" data-i="${i}" data-e="${e}">${e}</button>`).join('');mem.querySelectorAll('.mc').forEach(c=>c.onclick=()=>memFlip(c));GM.timer=setInterval(()=>{GM.t--;gInfo();if(GM.t<=0)endGame();},1000);}
+ gInfo();SND.pop();
+}
+function gInfo(){$('gInfo').textContent=GM.kind==='catch'?`⏱ ${Math.ceil(GM.t)}s　分數 ${GM.score}`:`⏱ ${GM.t}s　配對 ${GM.pairs}/6`;}
+function fitCanvas(){const cv=$('gCanvas'),r=cv.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);cv.width=r.width*d;cv.height=r.height*d;GM.d=d;}
+const CATCH_IT=[{e:'🍼',v:1,w:4},{e:'🧸',v:1,w:3},{e:'🧦',v:1,w:2},{e:'⭐',v:3,w:1},{e:'💩',v:-2,w:2}];
+function catchLoop(t){
+ if(GM.over||GM.kind!=='catch')return;const cv=$('gCanvas'),c=cv.getContext('2d'),W=cv.width,H=cv.height,d=GM.d||1;
+ const dt=Math.min(.05,(t-GM.last)/1000);GM.last=t;GM.t-=dt;GM.spawn-=dt;
+ if(GM.spawn<=0){GM.spawn=Math.max(.32,.6-(30-GM.t)*.009);let r=Math.random()*12,it=CATCH_IT[0];for(const x of CATCH_IT){r-=x.w;if(r<=0){it=x;break;}}GM.items.push({...it,x:rand(.06,.94)*W,y:-40*d,vy:(150+(30-GM.t)*6)*d*rand(.85,1.2)});}
+ c.clearRect(0,0,W,H);c.textAlign='center';c.textBaseline='middle';
+ const by=H-70*d,bx=GM.bx*W;c.font=`${80*d}px sans-serif`;c.fillText('🧺',bx,by);
+ c.font=`${44*d}px sans-serif`;
+ for(let i=GM.items.length-1;i>=0;i--){const it=GM.items[i];it.y+=it.vy*dt;c.fillText(it.e,it.x,it.y);
+  if(it.y>by-40*d&&it.y<by+20*d&&Math.abs(it.x-bx)<56*d){GM.items.splice(i,1);GM.score=Math.max(0,GM.score+it.v);if(it.v>0){SND.coin();}else{SND.bad();buzz(40);}continue;}
+  if(it.y>H+40*d)GM.items.splice(i,1);}
+ gInfo();if(GM.t<=0)return endGame();requestAnimationFrame(catchLoop);
+}
+function memFlip(c){
+ if(GM.lock||GM.over||c.classList.contains('up'))return;c.classList.add('up');SND.pop();GM.open.push(c);
+ if(GM.open.length===2){const[a,b]=GM.open;GM.lock=true;
+  if(a.dataset.e===b.dataset.e){setTimeout(()=>{a.classList.add('ok');b.classList.add('ok');GM.open=[];GM.lock=false;GM.pairs++;SND.coin();gInfo();if(GM.pairs>=6)endGame();},250);}
+  else setTimeout(()=>{a.classList.remove('up');b.classList.remove('up');GM.open=[];GM.lock=false;},700);}
+}
+function endGame(quit){
+ if(GM.over)return;GM.over=true;clearInterval(GM.timer);
+ const kind=GM.kind;let coins,gift=false;
+ if(kind==='catch'){coins=Math.min(80,GM.score*2);gift=GM.score>=18;}else{coins=GM.pairs*5+(GM.pairs>=6?Math.max(0,GM.t):0);gift=GM.pairs>=6&&GM.t>=12;}
+ if(quit&&kind==='catch'&&GM.t>3)coins=Math.floor(coins/2);
+ setTimeout(()=>{$('game').hidden=true;R.gamePause=false;if(S.radio)playMusic('radio');
+  S.coins+=coins;track('game');let gtxt='';if(gift)gtxt=giveGift();save();renderHUD();
+  modal(`<div class="big">${gift?'🎁':'🎉'}</div><h2>${kind==='catch'?`接到 ${GM.score} 分！`:GM.pairs>=6?'全部配對成功！':`配對咗 ${GM.pairs}/6`}</h2><p>獎勵：<b>+${coins} 🪙</b></p>${gtxt?`<div class="note">🎁 禮物：<b>${gtxt}</b></div>`:`<p class="small">${kind==='catch'?'接到 18 分或以上':'12 秒內全部配對'}有機會拎到禮物</p>`}<p class="small">BB仲瞓緊… 你都休息吓啦 😴</p>`,[{t:'好嘢！'}]);
+  SND.win();},quit?0:400);
+}
+function giveGift(){
+ const pool=PRODUCTS.filter(p=>reqMet(p)&&!owns(p)&&p.price<=160&&['toy','outfit','bottle'].includes(p.cat));
+ if(!pool.length||Math.random()<.25){S.coins+=40;return '額外 40 🪙';}
+ const p=pick(pool);
+ if(p.cat==='toy'){S.owned[p.id]=1;const pc={t:p.id,x:780,y:775};S.parcels.push(pc);if(!R.scene)spawnParcel(pc);else R.pendingParcel=true;}
+ if(p.cat==='outfit')S.wardrobe[p.id]=1;
+ if(p.cat==='bottle'){S.bskins=S.bskins||{};S.bskins[p.id.slice(3)]=1;}
+ checkAch();return PNAME(p)+(p.cat==='toy'?'（包裹喺屋企地下）':p.cat==='outfit'?'（喺 📈 衣櫃換上）':'（喺商場餵哺區使用）');
+}
+addEventListener('resize',()=>{if(!$('game').hidden&&GM.kind==='catch')fitCanvas();});
 
 /* =================== Mo嫂 =================== */
 const MOX=1385;let moLast=0,EV_HINT=false;
@@ -1295,10 +1534,10 @@ function fpsProbe(){
 /* =================== 時間流逝 =================== */
 let sec=0;
 function tick(){
- if(!S)return;sec++;const b=B(),n=b.needs;
+ if(!S)return;if(R.gamePause)return;sec++;const b=B(),n=b.needs;
  const rates={hunger:HUNGER_RATE[b.stage],sleep:SLEEP_RATE[b.stage],clean:2,fun:3+b.stage*.4};
  for(const k in rates){
-  if(k==='sleep'&&b.asleep){n.sleep=Math.min(100,n.sleep+(S.lightsOff?5:3.5));continue;}
+  if(k==='sleep'&&b.asleep){n.sleep=Math.min(100,n.sleep+(S.lightsOff?2.6:1.8));continue;}
   let r=rates[k];if(k==='fun'&&(S.radio||b.loc==='held'))r*=.3;if(b.asleep&&k!=='hunger')r*=.4;if(evOn()&&k==='hunger')r=0;
   n[k]=Math.max(0,n[k]-r/60);
  }
@@ -1323,7 +1562,9 @@ function tick(){
  if(EV&&EV.over){R.evT=R.evT||now();if(now()-R.evT>5000){R.evT=0;cleanupExam();}}else R.evT=0;
  if(mOpen&&$('modal').hidden&&!R.busy){R.mT=R.mT||now();if(now()-R.mT>3000){R.mT=0;mOpen=false;nextModal();}}else R.mT=0;
  if(moPresent()&&!evOn()&&!R.busy&&!mOpen&&now()-moLast>50000){moSay(pick(MO_IDLE),'tip',3600);}
- if(cry&&!R.busy&&now()-R.lastSob>5000){R.lastSob=now();SND.sob();}
+ if(cry&&!R.busy&&now()-R.lastSob>(evOn()?2600:3800)&&!R.gamePause){R.lastSob=now();SND.cry();}
+ else if(!cry&&!b.asleep&&minNeed().v<40&&!R.busy&&now()-R.lastSob>9000&&!R.gamePause&&!R.scene){R.lastSob=now();SND.whimper();}
+ if(b.asleep&&sec%4===0&&!R.gamePause&&!R.scene)SND.snore();
  if(evOn()){EV.t-=1;renderEv();if(EV.t<=0)failExam();}
  if(S.trial&&S.trial.until<=now()){if(b.loc==='stroller')placeBB('floor',{x:S.strollerX-150,y:770});toast(`Happy Wheels 試用完咗，鍾意可以喺商場購買 🛒`);S.trial=null;renderStroller();save();}
  S.piggy=Math.min(60,S.piggy+1/120);if(sec%5===0)renderPiggy();
@@ -1346,14 +1587,16 @@ function renderNeed(){
  setN(ic);
 }
 function tipText(){
+ if(R.scene==='park')return '👆 點地下就會行過去・㩒鴨仔、花、鞦韆、婆婆試吓・執星星同蝴蝶有金幣';
+ if(R.scene==='mall')return '👆 㩒舖頭入去睇貨・許願池可以許願・服務台有品牌任務';
  if(evOn())return '考牌試進行中：睇上面線索，搵出BB要咩！';
  const b=B(),n=b.needs;
- if(!S.seenHint&&!S.cnt.feed)return b.feed==='breast'&&S.parent==='mum'?'👆 BB肚餓時，拖BB去媽媽身上親餵（或者用奶樽）':'👆 將奶樽拖去BB度餵奶';
+ if(!S.seenHint&&!S.cnt.feed)return S.parent==='mum'?'👆 將奶樽拖去BB度餵奶（或者拖BB去媽媽身上親餵）':'👆 將奶樽拖去BB度餵奶';
  if(b.asleep)return `💤 ${b.name}瞓緊… 可以去 🏬 商場行吓`;
  if(b.dia)return `${b.dia==='poop'?'💩 屙咗':'💧 濕咗'}！喺換片枱攞尿片，拖落BB度`;
  if(S.items.some(i=>i.t==='dirty'))return '🗑️ 將臭尿片拖落垃圾桶';
  if(b.needBurp>now())return `👋 掃風：快速輕拍BB三下${b.loc==='held'?'':'（抱住佢只要兩下）'}`;
- if(n.hunger<35){const bt=S.items.find(i=>i.t==='bottle');if(S.parent==='mum'&&b.feed==='breast')return '🍼 肚餓：拖BB去媽媽身上親餵';return bt&&bt.lv<=0?'🍼 奶樽空咗，拖落沖奶機':'🍼 肚餓：拖奶樽去BB度';}
+ if(n.hunger<35){const bt=S.items.find(i=>i.t==='bottle');return bt&&bt.lv<=0?'🍼 奶樽空咗，拖落沖奶機':'🍼 肚餓：拖奶樽去BB度';}
  if(n.sleep<30)return '😪 眼瞓：抱入BB床，熄燈或者㩒床鈴會快啲瞓';
  if(n.clean<35||b.smudge)return b.stage<2?'🧽 拖海綿去BB度抹身':'🛁 抱BB落浴盆沖涼';
  if(Math.floor(S.piggy)>=20)return `🐷 錢罌儲咗 ${Math.floor(S.piggy)} 🪙，㩒佢收錢`;
@@ -1365,7 +1608,7 @@ function tipText(){
 function renderTip(){const t=tipText();if($('tipbox').textContent!==t)$('tipbox').textContent=t;}
 
 /* =================== HUD =================== */
-function renderHUD(){renderGrow();
+function renderHUD(){renderGrow();renderGameBtn();
  $('hCoins').textContent='🪙 '+S.coins;$('hHearts').textContent='❤️ '+S.hearts;
  const L=curLic();
  if(L&&!L.future){const ready=L.stages.every(i=>S.doneStages[i]);$('licT').textContent=L.id+'牌';$('licP').textContent=ready?'可以考！':`階段 ${L.stages.filter(i=>S.doneStages[i]).length}/2`;$('dLic').classList.toggle('show',ready);}
@@ -1405,7 +1648,7 @@ function reopen(fn){closeModal();setTimeout(fn,30);}
 /* --- 成長 --- */
 function openGrow(){
  const b=B(),st=STAGES[b.stage],goals=stageGoals(b);
- let h=`<div class="big">${b.gender==='girl'?'👧':'👦'}</div><h2>${b.name}・${st.age}</h2><p class="small">${b.gender==='girl'?'BB女':'BB仔'}${b.random?'（出世先揭曉）':''}・${b.feed==='breast'?'🤱 人奶':'🍼 奶粉'}</p>${b.stage<=3?`<p class="small">👵 Mo嫂陪月中（到滿月）・評分 <b>${moGrade(b)}</b>（做啱 ${moData(b).good}・做錯 ${moData(b).bad}）</p>`:(b.mo?`<p class="small">👵 Mo嫂陪月評分：<b>${moGrade(b)}</b></p>`:'')}`;
+ let h=`<div class="big">${b.gender==='girl'?'👧':'👦'}</div><h2>${b.name}・${st.age}</h2><p class="small">${b.gender==='girl'?'BB女':'BB仔'}${b.random?'（出世先揭曉）':''}</p>${b.stage<=3?`<p class="small">👵 Mo嫂陪月中（到滿月）・評分 <b>${moGrade(b)}</b>（做啱 ${moData(b).good}・做錯 ${moData(b).bad}）</p>`:(b.mo?`<p class="small">👵 Mo嫂陪月評分：<b>${moGrade(b)}</b></p>`:'')}`;
  h+=`<div class="tl">${STAGES.map((s,i)=>`<span class="${i<b.stage||b.done?'done':i===b.stage?'cur':''}">${s.age}</span>`).join('')}</div>`;
  if(b.done)h+=`<p><b>🎂 第一版所有階段完成！</b>下一版會有學爬、出牙等。</p>`;
  else{h+=`<h3>${st.age}：${st.title}</h3><div class="note">🌱 呢個階段：<b>${st.ms}</b><br>${st.note}</div>`;
@@ -1449,11 +1692,12 @@ function pPreview(p,big){
  if(p.cat==='crib'){const c=CRIBS[p.id].c;return `<svg viewBox="0 0 120 90" width="${big?180:100}" height="${big?135:75}"><rect x="6" y="10" width="108" height="10" rx="5" fill="${c[0]}"/><g stroke="${c[1]}" stroke-width="6" stroke-linecap="round"><path d="M22 22v48M40 22v48M58 22v48M76 22v48M94 22v48"/></g><rect x="6" y="10" width="10" height="76" rx="5" fill="${c[0]}"/><rect x="104" y="10" width="10" height="76" rx="5" fill="${c[0]}"/><rect x="6" y="66" width="108" height="10" rx="5" fill="${c[0]}"/></svg>`;}
  if(p.id.startsWith('wall_')){const c=WALLS[p.id.slice(5)].c;return `<svg viewBox="0 0 100 70" width="${big?160:90}" height="${big?112:63}"><rect width="100" height="70" rx="10" fill="${c[0]}"/><g fill="${c[1]}"><circle cx="20" cy="18" r="6"/><circle cx="50" cy="40" r="6"/><circle cx="80" cy="18" r="6"/><circle cx="20" cy="58" r="6"/><circle cx="80" cy="58" r="6"/></g></svg>`;}
  if(p.id.startsWith('rug_')){const c=RUGS[p.id.slice(4)].c;return `<svg viewBox="0 0 100 50" width="${big?170:95}" height="${big?85:48}"><ellipse cx="50" cy="25" rx="48" ry="22" fill="${c[0]}"/><ellipse cx="50" cy="25" rx="34" ry="14" fill="${c[1]}"/></svg>`;}
- if(p.id.startsWith('deco_'))return {art:'🖼️',plant:'🪴',lights:'✨'}[p.id.slice(5)];
+ if(p.id.startsWith('deco_'))return {art:'🖼️',plant:'🪴',lights:'✨'}[p.id.slice(5)]||DECO[p.id.slice(5)].em;
+ if(p.cat==='bottle'){const k0=S.bskin;S.bskin=p.id.slice(3);const h=bottleSVG(1);S.bskin=k0;return h;}
  return IT[p.id].em;
 }
-function owns(p){if(p.cat==='stroller')return !!S.strollers[p.id];if(p.cat==='outfit')return !!S.wardrobe[p.id];if(p.cat==='crib')return !!S.cribs[p.id];if(p.id.startsWith('wall_'))return !!S.walls[p.id.slice(5)];if(p.id.startsWith('rug_'))return !!S.rugs[p.id.slice(4)];if(p.id.startsWith('deco_'))return !!S.deco[p.id.slice(5)];return !!S.owned[p.id];}
-const CATS=[['stroller','🚼 嬰兒車'],['outfit','👕 BB服裝'],['home','🏠 家居'],['crib','🛏️ 嬰兒床'],['toy','🧸 玩具'],['brand','🤝 品牌任務'],['stats','📊 統計']];
+function owns(p){if(p.cat==='stroller')return !!S.strollers[p.id];if(p.cat==='outfit')return !!S.wardrobe[p.id];if(p.cat==='crib')return !!S.cribs[p.id];if(p.id.startsWith('wall_'))return !!S.walls[p.id.slice(5)];if(p.id.startsWith('rug_'))return !!S.rugs[p.id.slice(4)];if(p.id.startsWith('deco_'))return !!S.deco[p.id.slice(5)];if(p.cat==='bottle')return !!(S.bskins||{})[p.id.slice(3)];return !!S.owned[p.id];}
+const CATS=[['stroller','🚼 嬰兒車'],['outfit','👕 BB服裝'],['home','🏠 家居'],['crib','🛏️ 嬰兒床'],['toy','🧸 玩具'],['bottle','🍼 餵哺'],['brand','🤝 品牌任務'],['stats','📊 統計']];
 function openMall(cat){
  cat=cat||'stroller';
  let h=`<div class="mallhd"><b>🏬 BB Mall 育兒用品商場</b><p class="small" style="margin:2px 0">用遊戲金幣購物・你有 <b>${S.coins} 🪙</b></p><div class="brandbar">${Object.values(BRANDS).map(b=>`<span>${b.n}・${b.d}</span>`).join('')}</div></div><div class="tabs">${CATS.map(([k,n])=>`<button data-cat="${k}" class="${cat===k?'on':''}">${n}</button>`).join('')}</div>`;
@@ -1467,8 +1711,9 @@ function openMall(cat){
   for(const {p,s} of rows)h+=`<tr><td>${PNAME(p)}</td><td>${BRANDS[p.brand].n}</td><td>${s.v}</td><td>${s.t}</td><td>${s.b}</td><td>${s.u}</td></tr>`;
   const bt=BRAND_TASKS.map(t=>S.brand[t.id]||{});h+=`</table></div><p class="small">品牌任務：接受 ${bt.filter(s=>s.acc).length}・完成領獎 ${bt.filter(s=>s.claimed).length}</p>`;
  }else{
-  const list=PRODUCTS.filter(p=>p.cat===cat);
-  h+=`<div class="grid">`+list.map(p=>{const o=owns(p);return `<button class="shopi ${o?'own':''}" data-p="${p.id}">${p.cat==='outfit'&&B().outfit===p.id?'<span class="tag">著緊</span>':''}<span class="br">${BRANDS[p.brand].n}</span><span class="pv">${pPreview(p)}</span>${PNAME(p)}<small>${o?'已擁有':p.price+' 🪙'}</small></button>`;}).join('')+`</div>`;
+  const list=PRODUCTS.filter(p=>p.cat===cat).sort((a,b)=>(reqMet(b)-reqMet(a))||(a.price-b.price));
+  const lockedN=list.filter(p=>!reqMet(p)).length;S.seenP=S.seenP||{};
+  h+=`<div class="grid">`+list.map(p=>{const o=owns(p),ok=reqMet(p),nw=ok&&p.req&&!S.seenP[p.id];return `<button class="shopi ${o?'own':''}" data-p="${p.id}" ${ok?'':'style="opacity:.55"'}>${p.cat==='outfit'&&B().outfit===p.id?'<span class="tag">著緊</span>':nw?'<span class="tag">NEW</span>':''}<span class="br">${BRANDS[p.brand].n}</span><span class="pv" ${ok?'':'style="filter:grayscale(1) brightness(.6)"'}>${pPreview(p)}</span>${PNAME(p)}<small>${!ok?'🔒 '+reqText(p):o?'已擁有':p.price+' 🪙'}</small></button>`;}).join('')+`</div>${lockedN?`<p class="small">🔒 仲有 ${lockedN} 件新貨，BB大啲或者考到牌就會上架</p>`:''}`;
  }
  h+=`<p class="small">所有品牌同商品均為遊戲虛構，唔代表真實產品，亦唔係育兒用品安全建議。商場只賣外觀同玩具，唔會令BB更健康或者成長更快。</p>`;
  modal(h,[{t:'離開商場'}],c=>{
@@ -1480,8 +1725,10 @@ function openMall(cat){
  });
 }
 function openProduct(id){
- const p=PRODUCTS.find(x=>x.id===id);pStat(id,'v');track('mallView');save();
- const o=owns(p),canTry=['stroller','outfit','crib','home'].includes(p.cat);
+ const p=PRODUCTS.find(x=>x.id===id);
+ if(!reqMet(p)){toast(`🔒 ${PNAME(p)}：${reqText(p)}`);setTimeout(()=>openMall(p.cat),30);return;}
+ S.seenP=S.seenP||{};S.seenP[id]=1;pStat(id,'v');track('mallView');save();
+ const o=owns(p),canTry=['stroller','outfit','crib','home','bottle'].includes(p.cat);
  const h=`<div class="detail"><span class="small">${BRANDS[p.brand].n}・${BRANDS[p.brand].d}</span><div class="pv">${pPreview(p,true)}</div><h2>${PNAME(p)}</h2><p>${p.desc}</p><p><b>${o?'✅ 已擁有':p.price+' 🪙'}</b>　<span class="small">你有 ${S.coins} 🪙</span></p></div>`;
  const btns=[];
  if(o)btns.push({t:p.cat==='outfit'?'著上身 👕':p.cat==='toy'?'再買多件（'+p.price+'🪙）':'使用',f:()=>{if(p.cat==='toy')return buy(p);equip(p);setTimeout(()=>openMall(p.cat),30);}});
@@ -1493,8 +1740,8 @@ function openProduct(id){
 function buy(p){
  if(S.coins<p.price){toast('金幣唔夠，做任務或者收錢罌儲吓先');return false;}
  S.coins-=p.price;pStat(p.id,'b');SND.win();
- if(p.cat==='toy'){S.owned[p.id]=1;let px=clamp(B().x+170,100,1500);if(Math.abs(px-660)<100)px+=140;const pc={t:p.id,x:px,y:775};S.parcels.push(pc);spawnParcel(pc);toast(`📦 ${PNAME(p)}送到喇！喺地下㩒個包裹拆開`);focusX(px);}
- else{if(p.cat==='stroller')S.strollers[p.id]=1;if(p.cat==='outfit')S.wardrobe[p.id]=1;if(p.cat==='crib')S.cribs[p.id]=1;if(p.id.startsWith('wall_'))S.walls[p.id.slice(5)]=1;if(p.id.startsWith('rug_'))S.rugs[p.id.slice(4)]=1;if(p.id.startsWith('deco_'))S.deco[p.id.slice(5)]=1;equip(p);toast(`🛍️ 買咗 ${PNAME(p)}！`);setTimeout(()=>openMall(p.cat),40);}
+ if(p.cat==='toy'){S.owned[p.id]=1;let px=clamp(B().x+170,100,1500);if(Math.abs(px-660)<100)px+=140;const pc={t:p.id,x:px,y:775};S.parcels.push(pc);spawnParcel(pc);toast(R.scene?`📦 ${PNAME(p)}會送到屋企，返到去㩒包裹拆開`:`📦 ${PNAME(p)}送到喇！喺地下㩒個包裹拆開`);if(!R.scene)focusX(px);}
+ else{if(p.cat==='stroller')S.strollers[p.id]=1;if(p.cat==='outfit')S.wardrobe[p.id]=1;if(p.cat==='crib')S.cribs[p.id]=1;if(p.id.startsWith('wall_'))S.walls[p.id.slice(5)]=1;if(p.id.startsWith('rug_'))S.rugs[p.id.slice(4)]=1;if(p.id.startsWith('deco_'))S.deco[p.id.slice(5)]=1;if(p.cat==='bottle'){S.bskins=S.bskins||{};S.bskins[p.id.slice(3)]=1;}equip(p);toast(`🛍️ 買咗 ${PNAME(p)}！`);setTimeout(()=>openMall(p.cat),40);}
  checkAch();save();renderHUD();
 }
 function equip(p){
@@ -1502,13 +1749,15 @@ function equip(p){
  if(p.cat==='outfit'){B().outfit=p.id;applyLook(B());bbSay('新衫！靚唔靚？✨',1600);}
  if(p.cat==='crib')S.crib=p.id;
  if(p.id.startsWith('wall_'))S.wall=p.id.slice(5);if(p.id.startsWith('rug_'))S.rug=p.id.slice(4);
- if(p.id.startsWith('deco_')){const k=p.id.slice(5);S.decoOn[k]=!S.decoOn[k]||true;}
- pUse(p.id);renderRoom();save();
+ if(p.id.startsWith('deco_')){const k=p.id.slice(5);S.decoOn[k]=true;}
+ if(p.cat==='bottle'){S.bskin=p.id.slice(3);S.items.filter(i=>i.t==='bottle').forEach(refreshItem);}
+ pUse(p.id);renderRoom();save();if(R.scene)renderWalker();
 }
 function tryOn(p){
  pStat(p.id,'t');
- if(p.cat==='stroller'){S.trial={id:p.id,until:now()+180000};renderRoom();focusX(S.strollerX);toast(`🚼 ${PNAME(p)} 試用 3 分鐘！將BB放入車再㩒架車推`);save();return;}
- if(p.cat==='outfit'){track('tryOutfit');R.preview={kind:'outfit',id:p.id};applyLook(B(),p.id);focusX(B().x);bbSay('試身中… 好襯呀！👀',1800);setTimeout(()=>{if(R.preview&&R.preview.id===p.id){R.preview=null;applyLook(B());}},12000);toast('試身 12 秒，鍾意就去購買');save();return;}
+ if(p.cat==='stroller'){S.trial={id:p.id,until:now()+180000};renderRoom();if(R.scene)renderWalker();else focusX(S.strollerX);toast(`🚼 ${PNAME(p)} 試用 3 分鐘！將BB放入車再㩒架車推`);save();return;}
+ if(p.cat==='outfit'){track('tryOutfit');R.preview={kind:'outfit',id:p.id};applyLook(B(),p.id);if(R.scene)renderWalker();else{focusX(B().x);bbSay('試身中… 好襯呀！👀',1800);}setTimeout(()=>{if(R.preview&&R.preview.id===p.id){R.preview=null;applyLook(B());if(R.scene)renderWalker();}},12000);toast('試身 12 秒，鍾意就去購買');save();return;}
+ if(p.cat==='bottle'){const k0=S.bskin;S.bskin=p.id.slice(3);S.items.filter(i=>i.t==='bottle').forEach(refreshItem);toast('試用 15 秒 👀');setTimeout(()=>{S.bskin=k0;S.items.filter(i=>i.t==='bottle').forEach(refreshItem);},15000);return;}
  const keep={crib:S.crib,wall:S.wall,rug:S.rug,decoOn:{...S.decoOn}};
  if(p.cat==='crib')S.crib=p.id;if(p.id.startsWith('wall_'))S.wall=p.id.slice(5);if(p.id.startsWith('rug_'))S.rug=p.id.slice(4);if(p.id.startsWith('deco_'))S.decoOn[p.id.slice(5)]=true;
  renderRoom();toast('預覽 15 秒 👀');R.preview={kind:'home',id:p.id};
@@ -1534,8 +1783,8 @@ function openSettings(){
   {t:'返回'}]);
 }
 $('hCoins').onclick=()=>{au();openMall();};$('hHearts').onclick=()=>{au();toast(`❤️ 愛心：${S.hearts}（照顧BB累積嘅感情）`);};
-$('growBar').onclick=()=>{au();openGrow();};$('bLic').onclick=()=>{au();if(!evOn())openLicense();};$('bGrow').onclick=()=>{au();openGrow();};$('bTask').onclick=()=>{au();openTasks();};$('bMall').onclick=()=>{au();if(!evOn())openMall();};$('bSet').onclick=()=>{au();openSettings();};
-['hud','evbar','modal','dock','panL','panR'].forEach(id=>$(id).addEventListener('pointerdown',e=>e.stopPropagation()));
+$('growBar').onclick=()=>{au();openGrow();};$('bLic').onclick=()=>{au();if(!evOn())openLicense();};$('bTask').onclick=()=>{au();openTasks();};$('bMall').onclick=()=>{au();if(!evOn())goScene('mall');};$('bPark').onclick=()=>{au();if(!evOn())goScene('park');};$('bGame').onclick=()=>{au();openGames();};$('bHome').onclick=()=>{au();goScene('home');};$('gX').onclick=()=>{au();endGame(true);};$('bSet').onclick=()=>{au();openSettings();};
+['hud','evbar','modal','dock','panL','panR','bHome','game'].forEach(id=>$(id).addEventListener('pointerdown',e=>e.stopPropagation()));
 
 /* =================== 新手提示 =================== */
 function showHint(){if(S.seenHint||S.cnt.feed)return;const bt=S.items.find(i=>i.t==='bottle');if(!bt)return;const h=document.createElement('div');h.className='hand';h.textContent='👆';h.id='hand';h.style.left=(bt.x-10)+'px';h.style.top=(bt.y-30)+'px';h.style.setProperty('--hx',(B().x-bt.x)+'px');h.style.setProperty('--hy',(B().y-100-bt.y)+'px');stage.appendChild(h);}
@@ -1551,12 +1800,10 @@ function buildWorld(){
  renderRoom();renderGift();renderHUD();renderChips();updateClock();setFace('open','smile');idleFace();focusX(b.x);
 }
 function babyModal(first){
- const st={parent:'mum',gender:'none',feed:'breast'};
+ const st={parent:'mum',gender:'none'};
  modal(`<div class="big">${first?'👶🚗':'👶➕'}</div><h2>${first?'生仔要考牌':'屋企多咗位BB！'}</h2><p class="small">${first?'Parenthood Challenge':`最多 3 個BB，每個由出世第一日開始`}</p>
   ${first?`<p class="lbl">你係：</p><div class="opts" data-g="parent"><button class="opt on" data-v="mum"><span>👩</span>媽媽</button><button class="opt" data-v="dad"><span>👨</span>爸爸</button></div>`:''}
   <p class="lbl">BB係：</p><div class="opts" data-g="gender"><button class="opt" data-v="boy"><span>👦</span>BB仔</button><button class="opt" data-v="girl"><span>👧</span>BB女</button><button class="opt on" data-v="none"><span>🎁</span>出世先知</button></div>
-  <p class="lbl">第一餐食咩？</p><div class="opts" data-g="feed"><button class="opt on" data-v="breast"><span>🤱</span>人奶</button><button class="opt" data-v="formula"><span>🍼</span>奶粉</button></div>
-  <p class="small" style="text-align:left">兩種都可以餵大BB，按媽媽身體同家庭情況決定。揀人奶而你係媽媽，可以將BB拖去自己身上親餵。</p>
   <p class="lbl">BB叫咩名？</p><input class="nm" id="nm" maxlength="8" placeholder="例如：豆豆">`,
   [{t:'BB出世喇！▶',f:()=>{
     const nm=($('nm').value||'').trim().slice(0,8)||pick(['豆豆','啤啤','糖糖','仔仔','妹妹','波波']);
@@ -1581,7 +1828,7 @@ load();layout();
 if(S&&S.v===3){S.m.sess.push({s:now(),e:now()});welcomeBack();newDay();buildWorld();}else{S=null;babyModal(true);}
 buildHotspots();
 $('panL').onclick=()=>{au();panBy(innerWidth*.6);};$('panR').onclick=()=>{au();panBy(-innerWidth*.6);};
-renderPanBtns();if(S)renderMeters();fpsProbe();
+renderPanBtns();if(S){renderMeters();renderGameBtn();}fpsProbe();
 setTimeout(()=>{$('splash').classList.add('out');setTimeout(()=>$('splash').remove(),600);},600);
 setInterval(tick,1000);
 (function raf(){if(drag)autoPan();requestAnimationFrame(raf);})();
@@ -1597,9 +1844,9 @@ document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
 let lastTE=0;
 document.addEventListener('touchend',e=>{const t=Date.now();if(t-lastTE<380&&!e.target.closest('input,textarea'))e.preventDefault();lastTE=t;},{passive:false});
 document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});
-function checkZoom(){const v=window.visualViewport;const z=v&&v.scale>1.02;let b=$('zoomFix');if(!b){b=document.createElement('button');b.id='zoomFix';b.textContent='🔍 撳呢度縮返原大小';b.hidden=true;b.onclick=e=>{e.stopPropagation();resetZoom();};document.body.appendChild(b);}b.hidden=!z;if(z&&!R.zTried){R.zTried=1;resetZoom();}if(!z)R.zTried=0;}
+function checkZoom(){const v=window.visualViewport;const z=v&&v.scale>1.02;if(z&&!R.zTried){R.zTried=1;resetZoom();}if(!z)R.zTried=0;}
 if(window.visualViewport){visualViewport.addEventListener('resize',checkZoom);visualViewport.addEventListener('scroll',()=>{if(visualViewport.scale<=1.02)window.scrollTo(0,0);});}
-window.__g={focusX,moJudge,devComplete(){const b=B();const gs=stageGoals(b);gs.forEach((g,i)=>b.prog[g.k]=i?g.n:g.n-1);track(gs[0].k);},stageGoals,get S(){return S;},R,get EV(){return EV;},startExam,track,openMall,openProduct,openLicense,openGrow,switchBB,babyModal,tick,E,B};
+window.__g={focusX,moJudge,get GM(){return GM;},openGames,goScene,devComplete(){const b=B();const gs=stageGoals(b);gs.forEach((g,i)=>b.prog[g.k]=i?g.n:g.n-1);track(gs[0].k);},stageGoals,get S(){return S;},R,get EV(){return EV;},startExam,track,openMall,openProduct,openLicense,openGrow,switchBB,babyModal,tick,E,B};
 })();
 </script>
 </body>
